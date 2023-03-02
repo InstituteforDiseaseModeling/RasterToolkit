@@ -1,5 +1,4 @@
 #*******************************************************************************
-
 import os, shapefile
 
 import numpy              as np
@@ -10,7 +9,7 @@ from shapely.geometry import Polygon, MultiPolygon
 from sklearn.cluster  import KMeans
 from scipy.spatial    import Voronoi
 
-from rastertools  import  download, area_sphere
+from rastertools  import  download, area_sphere, get_remote
 
 #*******************************************************************************
 # Quick, approximate  scaling for longitute ratio as a function of latitude
@@ -21,17 +20,18 @@ def long_mult(lat): # latitude in degrees
 #*******************************************************************************
 
 
-DATA_ROOT = os.path.join(os.environ['DATA_ROOT'],'GDx')
+DATA_ROOT = "datasets" # os.path.join(os.getenv('DATA_ROOT', "dataset"),'GDx')
 TLC       = 'COD'
 
 
 # GDX - Download DRC health zones shapefiles
 shp = download(data_id  = '23930ae4-cd30-41b8-b33d-278a09683bac',
                data_dir = DATA_ROOT,
-               extract  = True)
+               extract  = True,
+               remote=get_remote("../../gdx.key"))
 
 file_name   = '{:s}_LEV02_ZONES'.format(TLC)
-shape_path  = os.path.join(DATA_ROOT, '{:s}_lev02_zones'.format(TLC), file_name)
+shape_path  = os.path.join(DATA_ROOT, '{:s}_lev02_zones'.format(TLC.lower()), file_name)
 
 
 # Input shapefiles
@@ -58,7 +58,7 @@ for k1 in range(1,len(sf1.fields)):
   else:
     sf1new.field(sf1.fields[k1][0],sf1.fields[k1][1],sf1.fields[k1][2])
 
-
+shps = []
 # Iterate over every shape in the shapefile
 for k1 in range(len(sf1r)):
   dotname       = sf1r[k1][dotname_index]
@@ -99,7 +99,7 @@ for k1 in range(len(sf1r)):
     else:
       ply_list.append(Polygon(shp_prt[0], holes=shp_prt[1:]))
   mltigon = MultiPolygon(ply_list)
-
+  shps.append(mltigon)
 
   # Second step is to create an underlying mesh of points. If the mesh is
   # equidistant, then the subdivided shapes will be uniform area. Alternatively,
@@ -115,7 +115,7 @@ for k1 in range(len(sf1r)):
 
 
   # If the multipolygoin isn't valid; need to bail
-  if(!mltigon.is_valid):
+  if not mltigon.is_valid:
     print(k1, 'Multipolygon not valid')
     1/0
 
@@ -150,8 +150,20 @@ for k1 in range(len(sf1r)):
     inBool = np.logical_or(inBool,part_bool)
 
 
+  import fiona
+  from shapely.geometry import shape, Point
+  from shapely.prepared import prep
+
+  geoms1 = [shape(pol['geometry']) for pol in fiona.open('datasets/cod_lev02_zones/COD_LEV02_ZONES.shp')]
+  geoms = [MultiPolygon([g]) if isinstance(g, Polygon) else g for g in geoms1]
+  mp = prep(geoms[0])
+  points = [Point(t[0], t[1]) for t in pts_vec]
+  mypoints = [p for p in points if mp.contains(p)]
+  pts_vec_in = [[p.x, p.y] for p in mypoints]
+  pass
+
   # Feed points interior to shape into k-means clustering to get num_box equal(-ish) clusters;
-  sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec[inBool,:])
+  sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in) # pts_vec[inBool,:]
   sub_node  = sub_clust.cluster_centers_
 
 
@@ -235,7 +247,12 @@ for k1 in range(len(sf1r)):
     sf1new.poly(poly_as_list)
     sf1new.record(*new_recs)
 
-
+from rastertools.shape import ShapeView
+shps2 = ShapeView.to_multi_polygons(sf1)
+are_same = [s == g for s, g in zip(shps, shps2)]
+failed = [b for b in are_same if not b]
+assert all(are_same)
+pass
 
 sf1new.close()
 
