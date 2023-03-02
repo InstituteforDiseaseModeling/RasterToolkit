@@ -6,10 +6,10 @@ from __future__ import annotations
 
 import matplotlib.path as plt
 import numpy as np
+import shapely.geometry
 
 from pathlib import Path
-
-import shapely.geometry
+from pyproj import Geod
 from shapefile import Shape, ShapeRecord, Reader, Shapes, Writer
 from shapely.geometry import Polygon, MultiPolygon, Point
 from shapely.prepared import prep
@@ -76,7 +76,7 @@ class ShapeView:
         return MultiPolygon([shape]) if isinstance(shape, Polygon) else shape
 
     @classmethod
-    def _read(cls, shape_stem: Union[str, Path, Reader]) -> Tuple[Reader, Shapes[Shape], List[ShapeRecord]]:
+    def read_shapes(cls, shape_stem: Union[str, Path, Reader]) -> Tuple[Reader, Shapes[Shape], List[ShapeRecord]]:
         reader: Reader = shape_stem if isinstance(shape_stem, Reader) else Reader(str(shape_stem))
         shapes: Shapes[Shape] = reader.shapes()
         records: List[ShapeRecord] = reader.records()
@@ -91,7 +91,7 @@ class ShapeView:
         :return: List of ShapeView objects, containing parsed shape info.
         """
         # Shapefiles
-        reader, sf1s, sf1r = cls._read(shape_stem)
+        reader, sf1s, sf1r = cls.read_shapes(shape_stem)
 
         # Output dictionary
         shapes_data: List[cls] = []
@@ -131,19 +131,32 @@ class ShapeView:
 
         return shapes_data
 
-    @classmethod
-    def to_multi_polygons(cls, shape_stem: Union[str, Path, Reader]) -> List[MultiPolygon]:
-        """
-        Load shape into a shape view class.
-        :param shape_stem: Local path stem referencing a set of shape files.
-        :return: List of shapely MultiPolygon objects
-        """
-        # Example loading shape files as multi polygons
-        # https://gis.stackexchange.com/questions/70591/creating-shapely-multipolygons-from-shapefile-multipolygons
-        _, shapes, _ = cls._read(shape_stem)
-        polis = [shapely.geometry.shape(s) for s in shapes]
-        multis = [MultiPolygon([p]) if isinstance(p, Polygon) else p for p in polis]
-        return multis
+
+def shapes_to_polygons(shape_stem: Union[str, Path, Reader], all_multi: bool = True) -> List[MultiPolygon]:
+    # Example loading shape files as multi polygons
+    # https://gis.stackexchange.com/questions/70591/creating-shapely-multipolygons-from-shapefile-multipolygons
+    _, shapes, _ = ShapeView.read_shapes(shape_stem)
+    polygons = [shapely.geometry.shape(s) for s in shapes]
+    if all_multi:
+        polygons = [MultiPolygon([p]) if isinstance(p, Polygon) else p for p in polygons]
+
+    return polygons
+
+
+def polygon_contains(polygon: Union[Polygon, MultiPolygon],
+                            points: Union[np.ndarray, List[Point]]) -> np.ndarray:
+    mp = prep(polygon)  # prep
+    pts: List[Point] = [Point(t[0], t[1]) for t in points] if isinstance(points, np.ndarray) else points
+    pts_in = [p for p in pts if mp.contains(p)]
+    pts_in_array: np.ndarray = np.array([[p.x, p.y] for p in pts_in])
+    return pts_in_array
+
+
+def polygon_area_km2(polygon: Union[Polygon, MultiPolygon]) -> np.float64:
+    geod = Geod(ellps="WGS84")
+    area, _ = geod.geometry_area_perimeter(polygon)  # perimeter ignored
+    area_km2 = np.float64(abs(area))/1000000.0
+    return area_km2
 
 
 def area_sphere(shape_points) -> float:
@@ -191,7 +204,7 @@ def long_mult(lat): # latitude in degrees
 def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Path], shape_attr: str = "DOTNAME"):
     # Read shapes, convert to multi polygonsvor_list
     sf1 = Reader(shape_stem)
-    multi_list = ShapeView.to_multi_polygons(sf1)
+    multi_list = shapes_to_polygons(sf1)
 
     # Create shape writer
     Path(out_shape_stem).mkdir(exist_ok=True, parents=True)
@@ -235,14 +248,14 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
 
         # Same idea here as in raster clipping; identify points that are inside the shape
         # and keep track of them using inBool
-        mp = prep(multi)
-        points = [Point(t[0], t[1]) for t in pts_vec]
-        pts_vec_in = [[p.x, p.y] for p in points if mp.contains(p)]
+        pts_vec_in = polygon_contains(multi)
 
         # Feed points interior to shape into k-means clustering to get num_box equal(-ish) clusters;
         sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in)
         sub_node = sub_clust.cluster_centers_
+
 #-------------------
+
         # Don't actually want the cluster centers, goal is the outlines. Going from centers
         # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
         # up the edges. (+/- 200 was arbitrary value greater than any possible lat/long)

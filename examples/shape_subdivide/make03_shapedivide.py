@@ -10,6 +10,7 @@ from sklearn.cluster  import KMeans
 from scipy.spatial    import Voronoi
 
 from rastertools  import  download, area_sphere, get_remote
+from rastertools.shape  import *
 
 #*******************************************************************************
 # Quick, approximate  scaling for longitute ratio as a function of latitude
@@ -58,7 +59,9 @@ for k1 in range(1,len(sf1.fields)):
   else:
     sf1new.field(sf1.fields[k1][0],sf1.fields[k1][1],sf1.fields[k1][2])
 
-shps = []
+# DEJAN - MultiPolygon
+multi_polygons = shapes_to_polygons(sf1)
+
 # Iterate over every shape in the shapefile
 for k1 in range(len(sf1r)):
   dotname       = sf1r[k1][dotname_index]
@@ -99,7 +102,11 @@ for k1 in range(len(sf1r)):
     else:
       ply_list.append(Polygon(shp_prt[0], holes=shp_prt[1:]))
   mltigon = MultiPolygon(ply_list)
-  shps.append(mltigon)
+
+  # DEJAN - compare multi-polygons flavors
+  mltign2 = multi_polygons[k1]   # --- DEJAN ---
+  assert mltigon == mltign2, "multi-polygons must be the same"
+
 
   # Second step is to create an underlying mesh of points. If the mesh is
   # equidistant, then the subdivided shapes will be uniform area. Alternatively,
@@ -110,6 +117,11 @@ for k1 in range(len(sf1r)):
   PPB_DIM    = 250  # Points-per-box-dimension; tuning; higher is slower and more accurate
   RND_SEED   = 4    # Random seed; ought to expose for reproducability
 
+  # DEJAN - area diff
+  tot_area2 = polygon_area_km2(mltign2)
+  area_diff = abs(tot_area - tot_area2)/tot_area
+  assert area_diff < 0.01
+
   num_box    = np.maximum(int(np.round(tot_area/AREA_TARG)),1)
   pts_dim    = int(np.ceil(np.sqrt(PPB_DIM*num_box)))
 
@@ -117,7 +129,7 @@ for k1 in range(len(sf1r)):
   # If the multipolygoin isn't valid; need to bail
   if not mltigon.is_valid:
     print(k1, 'Multipolygon not valid')
-    1/0
+    continue
 
   # Debug logging: shapefile index, target number of subdivisions
   print(k1, num_box)
@@ -149,21 +161,26 @@ for k1 in range(len(sf1r)):
         part_bool = np.logical_and(part_bool,np.logical_not(path_shp.contains_points(pts_vec)))
     inBool = np.logical_or(inBool,part_bool)
 
+  # DEJAN - contains points
+  pts_vec_in1: np.ndarray = pts_vec[inBool, :]
+  pts_vec_in2: np.ndarray = polygon_contains(mltign2, pts_vec)
 
-  import fiona
-  from shapely.geometry import shape, Point
-  from shapely.prepared import prep
-
-  geoms1 = [shape(pol['geometry']) for pol in fiona.open('datasets/cod_lev02_zones/COD_LEV02_ZONES.shp')]
-  geoms = [MultiPolygon([g]) if isinstance(g, Polygon) else g for g in geoms1]
-  mp = prep(geoms[0])
-  points = [Point(t[0], t[1]) for t in pts_vec]
-  mypoints = [p for p in points if mp.contains(p)]
-  pts_vec_in = [[p.x, p.y] for p in mypoints]
-  pass
+  len1, len2 = pts_vec_in1.shape[0], pts_vec_in2.shape[0]
+  max_i = min(len1, len2)
+  pts_vec_diff = [t for t in  enumerate(pts_vec_in1[:max_i,:] - pts_vec_in2[:max_i,]) if sum(t[1]) != 0]
+  if len1 != len2 or len(pts_vec_diff) > 0:
+    last_few1 = pts_vec_in1[-3:, :]
+    last_few2 = pts_vec_in2[-3:, :]
+    print("points vectors differ")
+  # try:
+  #   assert np.array_equal(pts_vec_in1, pts_vec_in2), "Containing points must be the same"
+  #   #assert (pts_vec_in1 == pts_vec_in2).all(), "Containing points must be the same"
+  # except Exception as ex:
+  #
+  #   pass
 
   # Feed points interior to shape into k-means clustering to get num_box equal(-ish) clusters;
-  sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in) # pts_vec[inBool,:]
+  sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec[inBool,:])
   sub_node  = sub_clust.cluster_centers_
 
 
@@ -246,13 +263,6 @@ for k1 in range(len(sf1r)):
     # Add the new shape to the shapefile; splat the record
     sf1new.poly(poly_as_list)
     sf1new.record(*new_recs)
-
-from rastertools.shape import ShapeView
-shps2 = ShapeView.to_multi_polygons(sf1)
-are_same = [s == g for s, g in zip(shps, shps2)]
-failed = [b for b in are_same if not b]
-assert all(are_same)
-pass
 
 sf1new.close()
 
