@@ -4,6 +4,7 @@ Functions for spatial processing of shape files.
 
 from __future__ import annotations
 
+import itertools
 import matplotlib.path as plt
 import numpy as np
 import shapely.geometry
@@ -11,7 +12,7 @@ import shapely.geometry
 from pathlib import Path
 from pyproj import Geod
 from shapefile import Shape, ShapeRecord, Reader, Shapes, Writer
-from shapely.geometry import Polygon, MultiPolygon, Point
+from shapely.geometry import Polygon, MultiPolygon, LinearRing, Point
 from shapely.prepared import prep
 from sklearn.cluster import KMeans
 from scipy.spatial import Voronoi
@@ -159,6 +160,34 @@ def polygon_area_km2(polygon: Union[Polygon, MultiPolygon]) -> np.float64:
     return area_km2
 
 
+def polygon_to_coords(geom: Union[Polygon, LinearRing]) -> List[Tuple[float, float]]:
+    if isinstance(geom, Polygon):
+        xy_set = geom.exterior.coords
+    elif isinstance(geom, LinearRing):
+        xy_set = geom.coords
+    else:
+        raise TypeError(f"Unsupported geometry type {type(geom)}")
+
+    shp_prt: np.ndarray = np.array([(val[0], val[1]) for val in xy_set])
+    coords_list: List[Tuple[float, float]] = shp_prt.tolist()
+    return coords_list
+
+
+def polygons_to_parts(polygons: List[Polygon]) -> List[List[Tuple[float, float]]]:
+    all_polygons = [[p] + list(p.interiors) for p in polygons]
+    all_polygons_list = list(itertools.chain(*all_polygons))
+    poly_as_list = [polygon_to_coords(p) for p in all_polygons_list]
+    return poly_as_list
+
+    # for polygon_list in all_polygons:
+    #     parts_list = polygon_to_coords(polygon)
+    #     poly_as_list.append(parts_list)
+    #     for polygon_int in polygon.interiors:
+    #         parts_list2 = polygon_to_coords(polygon_int)
+    #         poly_as_list.append(parts_list2)
+    # return poly_as_list
+
+
 def area_sphere(shape_points) -> float:
     """
     Calculates Area of a polygon on a sphere; JGeod (2013) v87 p43-55
@@ -205,12 +234,18 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
     # Read shapes, convert to multi polygonsvor_list
     sf1 = Reader(shape_stem)
     multi_list = shapes_to_polygons(sf1)
+    rec_list = sf1.records()
 
     # Create shape writer
     Path(out_shape_stem).mkdir(exist_ok=True, parents=True)
     sf1new = Writer(out_shape_stem)
     sf1new.field('DOTNAME', 'C', 70, 0)
     sf1new.fields.extend([tuple(t) for t in sf1.fields if t[0] not in ["DeletionFlag", "DOTNAME"]])
+
+    field_names = [f[0] for f in sf1new.fields]
+    assert "DOTNAME" in field_names, "Shape doesn't contain DOTNAME field."
+    dotname_index = field_names.index("DOTNAME")
+
 
     # Second step is to create an underlying mesh of points. If the mesh is
     # equidistant, then the subdivided shapes will be uniform area. Alternatively,
@@ -222,7 +257,8 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
         PPB_DIM = 250  # Points-per-box-dimension; tuning; higher is slower and more accurate
         RND_SEED = 4    # Random seed; ought to expose for reproducibility
 
-        num_box = np.maximum(int(np.round(multi.area/AREA_TARG)), 1)
+        multi_area = polygon_area_km2(multi)
+        num_box = np.maximum(int(np.round(multi_area/AREA_TARG)), 1)
         pts_dim = int(np.ceil(np.sqrt(PPB_DIM*num_box)))
 
         # If the multi polygoin isn't valid; need to bail
@@ -248,7 +284,7 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
 
         # Same idea here as in raster clipping; identify points that are inside the shape
         # and keep track of them using inBool
-        pts_vec_in = polygon_contains(multi)
+        pts_vec_in = polygon_contains(multi, pts_vec)
 
         # Feed points interior to shape into k-means clustering to get num_box equal(-ish) clusters;
         sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in)
@@ -259,16 +295,15 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
         # Don't actually want the cluster centers, goal is the outlines. Going from centers
         # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
         # up the edges. (+/- 200 was arbitrary value greater than any possible lat/long)
-        EXT_PTS    = np.array([[-200,-200],[ 200,-200],[-200, 200],[ 200, 200]])
-        vor_node  = np.append(sub_node,EXT_PTS,axis=0)
-        vor_obj   = Voronoi(vor_node)
+        EXT_PTS = np.array([[-200, -200], [ 200, -200], [-200, 200], [200, 200]])
+        vor_node = np.append(sub_node,EXT_PTS,axis=0)
+        vor_obj = Voronoi(vor_node)
 
         # Extract the Voronoi region boundaries from the Voronoi object. Need to duplicate
         # first point in each region so last == first for the next step
         vor_list = list()
         vor_vert = vor_obj.vertices
-        for k2 in range(len(vor_obj.regions)):
-            vor_reg = vor_obj.regions[k2]
+        for vor_reg in vor_obj.regions:
             if -1 in vor_reg or len(vor_reg) == 0:
                 continue
             vor_loop = np.append(vor_vert[vor_reg, :], vor_vert[vor_reg[0:1], :], axis=0)
@@ -283,55 +318,24 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
         # The Voronoi region outlines may extend beyond the shape outline and/or
         # overlap with negative spaces, so intersect each Voronoi region with the
         # shapely MultiPolygon created previously
-        for k2 in range(len(vor_list)):
+        for k2, poly in enumerate(vor_list):
             # Voronoi region are convex, so will not need MultiPolygon object
-            poly_reg = (Polygon(vor_list[k2])).intersection(multi)
+            poly_reg = (Polygon(poly)).intersection(multi)
 
             # Each Voronoi region will be a new shape; give it a name
-            new_recs = [rec for rec in sf1r[k1]]  # List copy
-            dotname_new = dotname + ':A{:04d}'.format(k2)
-            new_recs[dotname_index]  = dotname_new
+            new_recs = list(rec_list[k1]).copy()
+            dotname = rec_list[k1][dotname_index]
+            dotname_new = f"{dotname}:A{k2:04d}"
+            new_recs[dotname_index] = dotname_new
 
-            # Intersection may be multipolygon; create a poly_as_list representation
-            # which will become shapefile
-            # poly_as_list = [ [pos_part_1],
-            #                  [neg_part_1A],
-            #                  [neg_part_1B],
-            #                   ... ,
-            #                  [pos_part_2],
-            #                  [neg_part_2A],
-            #                   ... , ...]
-            poly_as_list = list()
-
-            if(poly_reg.geom_type == 'MultiPolygon'):
-
-              # Copy/paste from below; multipolygon is just a list of polygons
-              for poly_sing in poly_reg.geoms:
-                xyset   = poly_sing.exterior.coords
-                shp_prt = np.array([[val[0],val[1]] for val in xyset])
-                poly_as_list.append(shp_prt.tolist())
-
-                if(len(poly_sing.interiors) > 0):
-                  for poly_ing_int in poly_sing.interiors:
-                    xyset   = poly_ing_int.coords
-                    shp_prt = np.array([[val[0],val[1]] for val in xyset])
-                    poly_as_list.append(shp_prt.tolist())
-
-            else:
-              xyset   = poly_reg.exterior.coords
-              shp_prt = np.array([[val[0],val[1]] for val in xyset])
-              poly_as_list.append(shp_prt.tolist())
-
-              if(len(poly_reg.interiors) > 0):
-                for poly_ing_int in poly_reg.interiors:
-                  xyset   = poly_ing_int.coords
-                  shp_prt = np.array([[val[0],val[1]] for val in xyset])
-                  poly_as_list.append(shp_prt.tolist())
+            assert poly_reg.geom_type in ["Polygon", "MultiPolygon"], "Unsupported geometry type"
+            poly_list = poly_reg.geoms if poly_reg.geom_type == "MultiPolygon" else [poly_reg]
+            poly_as_list = polygons_to_parts(poly_list)
 
         # Add the new shape to the shapefile; splat the record
         sf1new.poly(poly_as_list)
         sf1new.record(*new_recs)
-
+        pass
 
 # import fiona
 # from shapely.geometry import shape
