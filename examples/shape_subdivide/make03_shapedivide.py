@@ -20,6 +20,9 @@ def long_mult(lat): # latitude in degrees
 
 #*******************************************************************************
 
+import time
+start_time = time.time()
+
 
 DATA_ROOT = "datasets" # os.path.join(os.getenv('DATA_ROOT', "dataset"),'GDx')
 TLC       = 'COD'
@@ -42,7 +45,15 @@ sf1r   = sf1.records()
 
 
 # Output shapefile
-sf1new = shapefile.Writer(file_name + '_100km')
+file_name_new = Path("results2/expected").joinpath(file_name)
+Path(file_name_new).mkdir(exist_ok=True, parents=True)
+file_name_new = f"{file_name_new}_100km"
+file_name_new2 = f"{file_name_new}_centers_100km"
+
+sf1new = shapefile.Writer(file_name_new)
+sf1new2 = shapefile.Writer(file_name_new2, shapeType=shapefile.POINT)
+#sf1new2.field("ID", "N", 10)
+sf1new2.field('DOTNAME', 'C', 70, 0)
 
 # Output shapefile should get all the same fields as input shapefile. First field
 # in the list (index zero) is always an auto-added deletion flag for database purposes,
@@ -63,7 +74,7 @@ for k1 in range(1,len(sf1.fields)):
 multi_polygons = shapes_to_polygons(sf1)
 
 # Iterate over every shape in the shapefile
-for k1 in range(len(sf1r)):
+for k1 in range(2): #len(sf1r)):
   dotname       = sf1r[k1][dotname_index]
   wrk_shape     = sf1s[k1]
   wrk_shape_pts = np.array(sf1s[k1].points)
@@ -123,6 +134,13 @@ for k1 in range(len(sf1r)):
   assert area_diff < 0.01
 
   num_box    = np.maximum(int(np.round(tot_area/AREA_TARG)),1)
+  num_box2 = np.maximum(int(np.round(tot_area2 / AREA_TARG)), 1)
+  are_num_box_diff = num_box != num_box2
+  if are_num_box_diff:
+    print(f"num_box differs: "
+          f"dotname: {dotname}, k1={k1}, num_box(x/a): [{num_box}, {num_box2}], "
+          f"center(a)={mltign2.centroid.x} {mltign2.centroid.y}")
+
   pts_dim    = int(np.ceil(np.sqrt(PPB_DIM*num_box)))
 
 
@@ -132,7 +150,7 @@ for k1 in range(len(sf1r)):
     continue
 
   # Debug logging: shapefile index, target number of subdivisions
-  print(k1, num_box)
+  #print(k1, num_box)
 
   # Start with a rectangular mesh, then (roughly) correct longitude (x values);
   # Assume spacing on latitude (y values) is constant; x value spacing needs to
@@ -183,6 +201,8 @@ for k1 in range(len(sf1r)):
   sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec[inBool,:])
   sub_node  = sub_clust.cluster_centers_
 
+  points = [Point(xy) for xy in sub_node]
+  #save_points(points, filename="centers")
 
   # Don't actually want the cluster centers, goal is the outlines. Going from centers
   # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
@@ -264,5 +284,13 @@ for k1 in range(len(sf1r)):
     sf1new.poly(poly_as_list)
     sf1new.record(*new_recs)
 
+    for i, p in enumerate([Point(xy) for xy in sub_node]):
+      sf1new2.point(p.x, p.y)
+      sf1new2.record(*new_recs)
+
 sf1new.close()
+sf1new2.close()
+
+dt = time.time() - start_time
+print(f"--- {int(dt//60)}m {dt%60}s ---")
 

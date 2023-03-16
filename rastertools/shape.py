@@ -11,7 +11,7 @@ import shapely.geometry
 
 from pathlib import Path
 from pyproj import Geod
-from shapefile import Shape, ShapeRecord, Reader, Shapes, Writer
+from shapefile import Shape, ShapeRecord, Reader, Shapes, Writer, POINT
 from shapely.geometry import Polygon, MultiPolygon, LinearRing, Point
 from shapely.prepared import prep
 from sklearn.cluster import KMeans
@@ -133,6 +133,9 @@ class ShapeView:
         return shapes_data
 
 
+# Helpers
+
+
 def shapes_to_polygons(shape_stem: Union[str, Path, Reader], all_multi: bool = True) -> List[MultiPolygon]:
     # Example loading shape files as multi polygons
     # https://gis.stackexchange.com/questions/70591/creating-shapely-multipolygons-from-shapefile-multipolygons
@@ -179,14 +182,6 @@ def polygons_to_parts(polygons: List[Polygon]) -> List[List[Tuple[float, float]]
     poly_as_list = [polygon_to_coords(p) for p in all_polygons_list]
     return poly_as_list
 
-    # for polygon_list in all_polygons:
-    #     parts_list = polygon_to_coords(polygon)
-    #     poly_as_list.append(parts_list)
-    #     for polygon_int in polygon.interiors:
-    #         parts_list2 = polygon_to_coords(polygon_int)
-    #         poly_as_list.append(parts_list2)
-    # return poly_as_list
-
 
 def area_sphere(shape_points) -> float:
     """
@@ -230,6 +225,9 @@ def long_mult(lat): # latitude in degrees
   return 1.0/np.cos(lat*np.pi/180.0)
 
 
+# API
+
+
 def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Path], shape_attr: str = "DOTNAME"):
     # Read shapes, convert to multi polygonsvor_list
     sf1 = Reader(shape_stem)
@@ -237,10 +235,16 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
     rec_list = sf1.records()
 
     # Create shape writer
-    Path(out_shape_stem).mkdir(exist_ok=True, parents=True)
+    out_shape_stem = Path(out_shape_stem)
+    out_shape_stem.mkdir(exist_ok=True, parents=True)
+    out_shape_stem = out_shape_stem.joinpath(out_shape_stem.name)
     sf1new = Writer(out_shape_stem)
     sf1new.field('DOTNAME', 'C', 70, 0)
     sf1new.fields.extend([tuple(t) for t in sf1.fields if t[0] not in ["DeletionFlag", "DOTNAME"]])
+
+    sf1new2 = Writer(f"{out_shape_stem}_centers", shapeType=POINT)
+    sf1new2.field('DOTNAME', 'C', 70, 0)
+    #sf1new2.field("ID", "N", 10)
 
     field_names = [f[0] for f in sf1new.fields]
     assert "DOTNAME" in field_names, "Shape doesn't contain DOTNAME field."
@@ -290,13 +294,11 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
         sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in)
         sub_node = sub_clust.cluster_centers_
 
-#-------------------
-
         # Don't actually want the cluster centers, goal is the outlines. Going from centers
         # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
         # up the edges. (+/- 200 was arbitrary value greater than any possible lat/long)
         EXT_PTS = np.array([[-200, -200], [ 200, -200], [-200, 200], [200, 200]])
-        vor_node = np.append(sub_node,EXT_PTS,axis=0)
+        vor_node = np.append(sub_node, EXT_PTS, axis=0)
         vor_obj = Voronoi(vor_node)
 
         # Extract the Voronoi region boundaries from the Voronoi object. Need to duplicate
@@ -332,12 +334,15 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
             poly_list = poly_reg.geoms if poly_reg.geom_type == "MultiPolygon" else [poly_reg]
             poly_as_list = polygons_to_parts(poly_list)
 
-        # Add the new shape to the shapefile; splat the record
-        sf1new.poly(poly_as_list)
-        sf1new.record(*new_recs)
-        pass
+            # Add the new shape to the shapefile; splat the record
+            sf1new.poly(poly_as_list)
+            sf1new.record(*new_recs)
 
-# import fiona
-# from shapely.geometry import shape
-# geoms1 = [shape(pol['geometry']) for pol in fiona.open('datasets/cod_lev02_zones/COD_LEV02_ZONES.shp')]
-# geoms = [MultiPolygon([g]) if isinstance(g, Polygon) else g for g in geoms1]
+        for i, p in enumerate([Point(xy) for xy in sub_node]):
+            sf1new2.point(p.x, p.y)
+            sf1new2.record(*new_recs)
+
+    sf1new.close()
+    sf1new2.close()
+
+
