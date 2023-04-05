@@ -19,5 +19,7 @@ See examples:
 - See 2nd part of the "worldpop" example
 - See "tests/test_scenarios.py" test "test_emod_demographics"
 
+## Creating Subdivision Layer
 
+![Subdivision example](../docs/images/subdivision.png)
 
