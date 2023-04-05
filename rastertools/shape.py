@@ -265,9 +265,13 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
         num_box = np.maximum(int(np.round(multi_area/AREA_TARG)), 1)
         pts_dim = int(np.ceil(np.sqrt(PPB_DIM*num_box)))
 
+        if not multi.is_valid:
+            print(k1, f"Trying to fix the invalid Multipolygon {k1}.")
+            multi = multi.buffer(0)  # this seems to be fixing broken multi-polygons.
+
         # If the multi polygoin isn't valid; need to bail
         if not multi.is_valid:
-            print(k1, 'Multipolygon not valid')
+            print(k1, f"Multipolygon {k1} not valid")
             continue
         else:
             # Debug logging: shapefile index, target number of subdivisions
