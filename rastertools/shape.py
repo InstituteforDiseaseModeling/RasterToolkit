@@ -73,6 +73,10 @@ class ShapeView:
     def as_multi_polygon(self) -> MultiPolygon:
         return self._as_multi_polygon(self.as_polygon())
 
+    @property
+    def area_km2(self):
+        return polygon_area_km2(self.as_polygon())
+
     @staticmethod
     def _as_multi_polygon(shape: Shape):
         return MultiPolygon([shape]) if isinstance(shape, Polygon) else shape
@@ -136,16 +140,20 @@ class ShapeView:
 
 # Helpers
 
-
-def shapes_to_polygons(shape_stem: Union[str, Path, Reader], all_multi: bool = True) -> List[MultiPolygon]:
+def shapes_to_polygons_dict(shape_stem: Union[str, Path, Reader], all_multi: bool = True) -> List[MultiPolygon]:
     # Example loading shape files as multi polygons
     # https://gis.stackexchange.com/questions/70591/creating-shapely-multipolygons-from-shapefile-multipolygons
-    _, shapes, _ = ShapeView.read_shapes(shape_stem)
-    polygons = [shapely.geometry.shape(s) for s in shapes]
+    _, shapes, records = ShapeView.read_shapes(shape_stem)
+    polygons = {r.DOTNAME: shapely.geometry.shape(s) for s, r in zip(shapes, records)}
     if all_multi:
-        polygons = [MultiPolygon([p]) if isinstance(p, Polygon) else p for p in polygons]
+        polygons = {n: MultiPolygon([p]) if isinstance(p, Polygon) else p for n, p in polygons.items()}
 
     return polygons
+
+
+def shapes_to_polygons(shape_stem: Union[str, Path, Reader], all_multi: bool = True) -> List[MultiPolygon]:
+    d = shapes_to_polygons_dict(shape_stem=shape_stem, all_multi=all_multi)
+    return list(d.values())
 
 
 def polygon_contains(polygon: Union[Polygon, MultiPolygon],
@@ -230,7 +238,7 @@ def long_mult(lat): # latitude in degrees
 
 
 def shape_subdivide(shape_stem: Union[str, Path],
-                    out_shape_stem: Union[str, Path],
+                    out_shape_stem: Union[str, Path] = None,
                     out_centers: bool = False,
                     top_n: int = None,
                     shape_attr: str = "DOTNAME") -> None:
@@ -241,6 +249,7 @@ def shape_subdivide(shape_stem: Union[str, Path],
     rec_list = sf1.records()
 
     # Create shape writer
+    out_shape_stem = out_shape_stem or f"{str(shape_stem)}_sub"
     out_shape_stem = Path(out_shape_stem)
     out_shape_stem.parent.mkdir(exist_ok=True, parents=True)
     sf1new = Writer(out_shape_stem)
