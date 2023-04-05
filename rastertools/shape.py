@@ -5,7 +5,8 @@ Functions for spatial processing of shape files.
 from __future__ import annotations
 
 import itertools
-import matplotlib.path as plt
+import matplotlib.path as plth
+import matplotlib.pyplot as plt
 import numpy as np
 import shapely.geometry
 
@@ -29,7 +30,7 @@ class ShapeView:
         self.shape: Shape = shape
         self.record: ShapeRecord = record
         self.center: (float, float) = (0.0, 0.0)
-        self.paths: List[plt.Path] = []
+        self.paths: List[plth.Path] = []
         self.areas: List[float] = []
 
     def __str__(self):
@@ -111,7 +112,7 @@ class ShapeView:
             # Iterate over parts of shapefile
             for k2 in range(len(prt_list) - 1):
                 shp_prt = shp.points[prt_list[k2]:prt_list[k2 + 1]]
-                path_shp = plt.Path(shp_prt, closed=True, readonly=True)
+                path_shp = plth.Path(shp_prt, closed=True, readonly=True)
 
                 # Estimate area for part
                 area_prt = area_sphere(shp_prt)
@@ -228,7 +229,12 @@ def long_mult(lat): # latitude in degrees
 # API
 
 
-def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Path], shape_attr: str = "DOTNAME"):
+def shape_subdivide(shape_stem: Union[str, Path],
+                    out_shape_stem: Union[str, Path],
+                    out_centers: bool = False,
+                    top_n: int = None,
+                    shape_attr: str = "DOTNAME") -> None:
+
     # Read shapes, convert to multi polygonsvor_list
     sf1 = Reader(shape_stem)
     multi_list = shapes_to_polygons(sf1)
@@ -236,19 +242,21 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
 
     # Create shape writer
     out_shape_stem = Path(out_shape_stem)
-    out_shape_stem.mkdir(exist_ok=True, parents=True)
-    out_shape_stem = out_shape_stem.joinpath(out_shape_stem.name)
+    out_shape_stem.parent.mkdir(exist_ok=True, parents=True)
     sf1new = Writer(out_shape_stem)
-    sf1new.field('DOTNAME', 'C', 70, 0)
-    sf1new.fields.extend([tuple(t) for t in sf1.fields if t[0] not in ["DeletionFlag", "DOTNAME"]])
+    sf1new.field(shape_attr, 'C', 70, 0)
+    sf1new.fields.extend([tuple(t) for t in sf1.fields if t[0] not in ["DeletionFlag", shape_attr]])
 
-    sf1new2 = Writer(f"{out_shape_stem}_centers", shapeType=POINT)
-    sf1new2.field('DOTNAME', 'C', 70, 0)
-    #sf1new2.field("ID", "N", 10)
+    if out_centers:
+        sf1new2 = Writer(f"{out_shape_stem}_centers", shapeType=POINT)
+        sf1new2.field(shape_attr, 'C', 70, 0)
+        #sf1new2.field("ID", "N", 10)
+    else:
+        sf1new2 = None
 
     field_names = [f[0] for f in sf1new.fields]
-    assert "DOTNAME" in field_names, "Shape doesn't contain DOTNAME field."
-    dotname_index = field_names.index("DOTNAME")
+    assert shape_attr in field_names, f"Shape doesn't contain {shape_attr} field."
+    dotname_index = field_names.index(shape_attr)
 
 
     # Second step is to create an underlying mesh of points. If the mesh is
@@ -256,7 +264,13 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
     # the points could be population raster data, and the subdivided shapes would
     # be uniform population.
 
-    for k1, multi in enumerate(multi_list):
+    top_n = top_n or len(multi_list)
+    # multi_count = len(multi_list)
+    # if top_n is not None:
+    #     assert isinstance(top_n, int) and top_n > 0, "Argument top_n must be a positive integer."
+    #     multi_count = abs(min(multi_count, top_n))
+
+    for k1, multi in enumerate(multi_list[:top_n]):
         AREA_TARG = 100  # Needs to be configurable; here target is ~100km^2
         PPB_DIM = 250  # Points-per-box-dimension; tuning; higher is slower and more accurate
         RND_SEED = 4    # Random seed; ought to expose for reproducibility
@@ -296,7 +310,7 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
 
         # Feed points interior to shape into k-means clustering to get num_box equal(-ish) clusters;
         sub_clust = KMeans(n_clusters=num_box, random_state=RND_SEED, n_init='auto').fit(pts_vec_in)
-        sub_node = sub_clust.cluster_centers_
+        sub_node = sub_clust.cluster_centers_  # this is not a bug, that is the actual name of the property
 
         # Don't actually want the cluster centers, goal is the outlines. Going from centers
         # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
@@ -342,11 +356,41 @@ def shape_subdivide(shape_stem: Union[str, Path], out_shape_stem: Union[str, Pat
             sf1new.poly(poly_as_list)
             sf1new.record(*new_recs)
 
-        for i, p in enumerate([Point(xy) for xy in sub_node]):
-            sf1new2.point(p.x, p.y)
-            sf1new2.record(*new_recs)
+        if out_centers:
+            for i, p in enumerate([Point(xy) for xy in sub_node]):
+                sf1new2.point(p.x, p.y)
+                assert out_centers
+                sf1new2.record(*new_recs)
 
     sf1new.close()
-    sf1new2.close()
+    if out_centers:
+        sf1new2.close()
 
 
+def plot_shapes(shape_stem: Union[str, Path],
+                ax: plt.Axes = None,
+                alpha: float = 0.5,
+                color: str = "red",
+                line_width: float = 1) -> Tuple[plt.Figure, plt.Axes]:
+
+    # Plot sub-shapes
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = None
+
+    multi_list: List[MultiPolygon] = shapes_to_polygons(shape_stem)
+    x_min, x_max, y_min, y_max = -360.0, 360.0, -90.0, 90.0
+    for multi in multi_list:
+        for poly in multi.geoms:
+            x, y = poly.exterior.xy
+            x_min, x_max = max(x_min, min(x)), min(x_max, max(x))
+            y_min, y_max = max(y_min, min(y)), min(y_max, max(y))
+            ax.fill(x, y, alpha=alpha, linewidth=line_width)
+            ax.fill(x, y, alpha=alpha, linewidth=line_width, color=color)
+
+    # Set the axis limits and show the plot
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+
+    return fig, ax
