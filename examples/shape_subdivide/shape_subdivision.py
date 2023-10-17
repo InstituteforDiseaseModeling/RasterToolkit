@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List
 
 # GDX Download
-os.environ['CKAN_API_KEY'] = Path("../../gdx.key").read_text()                       # GDx API KEY
+os.environ['CKAN_API_KEY'] = Path("gdx.key").read_text()                       # GDx API KEY
 shp: List[str] = download("23930ae4-cd30-41b8-b33d-278a09683bac", extract=True)  # DRC health zones shapefiles
 
 # Shape file paths
@@ -30,6 +30,7 @@ def subdivide_example(area: int = None):
 
     print(f"Plotting admin shapes and new subdivision layer.")
     plot_subdivision(shape_file, new_shape_stam)
+    print(f"Completed plotting.")
 
 
 subdivide_example()  # default is 100 km2

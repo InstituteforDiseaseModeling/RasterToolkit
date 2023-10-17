@@ -11,7 +11,7 @@ from rastertools import download, raster_clip, utils
 from typing import Dict
 
 # GDX Download
-os.environ['CKAN_API_KEY'] = Path("../../gdx.key").read_text()          # GDx API KEY
+os.environ['CKAN_API_KEY'] = Path("gdx.key").read_text()          # GDx API KEY
 shp = download("23930ae4-cd30-41b8-b33d-278a09683bac", extract=True)    # DRC health zones shapefiles
 rst = download("0c7241d0-a31f-451f-9df9-f7f3eff81e03", extract=True)    # WorldPop rasters - DRC, 1km, UN adj
 shape_file = Path(shp[0])
