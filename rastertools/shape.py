@@ -29,6 +29,7 @@ class ShapeView:
     def __init__(self, shape: Shape, record: ShapeRecord, name_attr: str = None):
         self.name_attr: str = name_attr or self.default_shape_attr
         self.shape: Shape = shape
+        self._points: np.ndarray = None
         self.record: ShapeRecord = record
         self.center: (float, float) = (0.0, 0.0)
         self.paths: List[plth.Path] = []
@@ -46,7 +47,9 @@ class ShapeView:
     @property
     def points(self):
         """The list of point defining shape geometry."""
-        return np.array(self.shape.points)
+        if self._points is None:
+            self._points = np.array(self.shape.points)
+        return self._points
 
     @property
     def xy_max(self):
