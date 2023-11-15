@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union, Callable
 from rastertools.shape import ShapeView
 
+Image.MAX_IMAGE_PIXELS = 933120000  # prevents the DecompressionBombWarning. Default limit is 89478485 pixels
+
 
 def raster_clip(raster_file: Union[str, Path],
                 shape_stem: Union[str, Path],
