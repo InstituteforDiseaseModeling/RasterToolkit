@@ -5,7 +5,9 @@ Functions for spatial processing of raster TIFF files.
 import matplotlib.path as plt
 import numpy as np
 import shapefile
+import os
 
+from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 from PIL.TiffTags import TAGS
 from scipy import interpolate
@@ -45,32 +47,58 @@ def raster_clip(raster_file: Union[str, Path],
     data_dict = dict()
     shape_len = len(shapes)
     print("Clipping:")
+    
+    fts = {}
+    # Init the futures executor
+    executor = ThreadPoolExecutor(max_workers=(os.cpu_count() - 1))
+    
     # Iterate over shapes in shapefile
     for k1, shp in enumerate(shapes):
-        show_status = not quiet or k1 % 1000 == 0 or k1 in [0, shape_len - 1]
-        # Null shape; error in shapefile
-        shp.validate()
+        fts[k1] = executor.submit(
+            raster_clip_single,
+            shp=shp,
+            sparce_data=sparce_data,
+            k1=k1,
+            shape_len=shape_len,
+            summary_func=summary_func,
+            include_latlon=include_latlon,
+            quiet=quiet)
 
-        # Subset population data matrix for clipping
-        data_clip = subset_matrix_for_clipping(shp, sparce_data)
+    data_dict = {}
+    for k1, ft in fts.items():
+        data_dict.update(ft.result())
 
-        if data_clip.shape[0] == 0:
-            data_dict[shp.name] = summary_entry(None, {"pop": 0}, include_latlon)
-            if show_status:
-                print_status(shp, data_dict, k1, shape_len)
-            continue
+    executor.shutdown(wait=True)
 
-        # Pop values
-        value = data_clip[is_interior(shp, data_clip), 2]
+    return data_dict
 
-        # Entry dictionary
-        summary_func = summary_func or default_summary_func
-        entry = {"pop": summary_func(value)}
 
-        # Set entry and print status
-        data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
+def raster_clip_single(shp, sparce_data, k1, shape_len, summary_func, include_latlon, quiet):
+    data_dict = {}
+    show_status = not quiet or k1 % 1000 == 0 or k1 in [0, shape_len - 1]
+    # Null shape; error in shapefile
+    shp.validate()
+
+    # Subset population data matrix for clipping
+    data_clip = subset_matrix_for_clipping(shp, sparce_data)
+
+    if data_clip.shape[0] == 0:
+        data_dict[shp.name] = summary_entry(None, {"pop": 0}, include_latlon)
         if show_status:
             print_status(shp, data_dict, k1, shape_len)
+        return data_dict
+
+    # Pop values
+    value = data_clip[is_interior(shp, data_clip), 2]
+
+    # Entry dictionary
+    summary_func = summary_func or default_summary_func
+    entry = {"pop": summary_func(value)}
+
+    # Set entry and print status
+    data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
+    if show_status:
+        print_status(shp, data_dict, k1, shape_len)
 
     return data_dict
 
