@@ -20,17 +20,21 @@ def raster_clip(raster_file: Union[str, Path],
                 shape_stem: Union[str, Path],
                 shape_attr: str = "DOTNAME",
                 summary_func: Callable = None,
-                include_latlon: bool = False) -> Dict[str, Union[float, int]]:
+                include_latlon: bool = False,
+                quiet: bool = False) -> Dict[str, Union[float, int]]:
     """
     Extract data from a raster based on shapes.
     :param raster_file: Local path to a raster file.
     :param shape_stem: Local path stem referencing a set of shape files.
-    :param shape_attr: The shape attribute name to be use as output dictionary key.
+    :param shape_attr: The shape attribute name to be used as output dictionary key.
     :param summary_func: Aggregation func to be used for summarizing clipped data for each shape.
     :param include_latlon: The flag to include lat/lon in the dict entry.
+    :param quiet: The flag to control if status is printed.
     :return: Dictionary with dot names as keys and calculates aggregations as values.
     """
     assert Path(raster_file).is_file(), "Raster file not found."
+
+    print("Loading data...")
 
     # Load data, init sparce matrix
     shapes = ShapeView.from_file(shape_stem, shape_attr)
@@ -39,9 +43,11 @@ def raster_clip(raster_file: Union[str, Path],
 
     # Output dictionary
     data_dict = dict()
-
+    shape_len = len(shapes)
+    print("Clipping:")
     # Iterate over shapes in shapefile
     for k1, shp in enumerate(shapes):
+        show_status = not quiet or k1 % 1000 == 0 or k1 in [0, shape_len - 1]
         # Null shape; error in shapefile
         shp.validate()
 
@@ -50,7 +56,8 @@ def raster_clip(raster_file: Union[str, Path],
 
         if data_clip.shape[0] == 0:
             data_dict[shp.name] = summary_entry(None, {"pop": 0}, include_latlon)
-            print_status(shp, data_dict, k1, len(shapes))
+            if show_status:
+                print_status(shp, data_dict, k1, shape_len)
             continue
 
         # Pop values
@@ -62,7 +69,8 @@ def raster_clip(raster_file: Union[str, Path],
 
         # Set entry and print status
         data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
-        print_status(shp, data_dict, k1, len(shapes))
+        if show_status:
+            print_status(shp, data_dict, k1, shape_len)
 
     return data_dict
 
@@ -214,7 +222,8 @@ def is_interior(shape: ShapeView, data_clip: np.ndarray) -> bool:
 
 
 def print_status(shape: ShapeView, data_dict: Dict, k1: int, shape_count: int) -> None:
-    print(k1 + 1, 'of', shape_count, shape.name, shape.center, data_dict[shape.name])
+    perc = round(100*(k1 + 1)/shape_count)
+    print(k1 + 1, 'of', shape_count, f"({perc}%)", shape.name, shape.center, data_dict[shape.name])
 
 
 def interpolate_at_weight_data(shape: ShapeView,
