@@ -10,8 +10,8 @@ from rastertools import raster_clip
 if __name__ == "__main__":
     print("running")
     # start = time.time()
-    raster_file_path = "example_data/NGA_population_v2_0_gridded/NGA_population_v2_0_gridded.tif"
-    shape_file_path = "example_data/geonetwork_landcover_nga_gc_adg/nga_gc_adg.shp"
+    raster_file_path = "examples/SOM/example_data/NGA_population_v2_0_gridded/NGA_population_v2_0_gridded.tif"
+    shape_file_path = "examples/SOM/example_data/geonetwork_landcover_nga_gc_adg/nga_gc_adg.shp"
 
     pop_dict = raster_clip(raster_file=raster_file_path,
                            shape_stem=shape_file_path,

@@ -4,11 +4,6 @@
 
 *.png
 *.svg
-*.tif
-
-*.shp
-*.dbf
-*.shx
 
 *.zip
 
