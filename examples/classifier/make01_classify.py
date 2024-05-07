@@ -96,6 +96,9 @@ with open('dump_latlong.json') as fid01:
 with open('dump_mcv.json') as fid01:
   mcv_dict = json.load(fid01)
 
+with open('dump_cgf_stunting.json') as fid01:
+  cgf_dict = json.load(fid01)
+
 
 
 
@@ -338,4 +341,49 @@ cbar_handle.ax.tick_params(labelsize=16)
 
 plt.tight_layout()
 plt.savefig('fig_NGA_MCV.png')
+plt.close()
+
+
+
+# Figure 3
+fig01 = plt.figure(figsize=(10+3,10*2.5/4))
+axs01 = fig01.add_subplot(111,label=None)
+plt.sca(axs01)
+
+axs01.grid(visible=True, which='major', ls='-', lw=0.5, label='')
+axs01.grid(visible=True, which='minor', ls=':', lw=0.1)
+axs01.set_axisbelow(True)
+axs01.set_xlabel('Longitude',fontsize=14)
+axs01.set_ylabel('Latitude', fontsize=14)
+
+
+axs01.set_xlim(  2.5, 15.0)
+axs01.set_ylim(  4.0, 14.0)
+
+virmap   = mpl.colormaps['viridis']
+pdenlist = list()
+
+for k1 in range(len(sf3r)):
+
+  pden = cgf_dict[sf3r[k1][0]]['val']/100.0
+  cval = virmap(pden)[:3]
+  vizShape(sf3s[k1],axs01,clr=cval)
+
+
+for k1 in range(len(sf1r)):
+  if('KADUNA' not in sf1r[k1][0] and 'KANO' not in sf1r[k1][0]):
+    continue
+  vizOutline(sf1s[k1],axs01,wid=1.0,clr=[0.6,0.2,0.0])
+
+
+vizOutline(sf0s[0],axs01,wid=1.0,clr=[0.6,0.2,0.0])
+
+
+cbar_handle = plt.colorbar(cm.ScalarMappable(cmap=virmap), shrink=0.75, ax=axs01)
+
+cbar_handle.set_label('Stunting',fontsize=20,labelpad=10)
+cbar_handle.ax.tick_params(labelsize=16)
+
+plt.tight_layout()
+plt.savefig('fig_NGA_stunting.png')
 plt.close()
