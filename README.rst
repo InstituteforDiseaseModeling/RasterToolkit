@@ -44,8 +44,7 @@ Developer Setup
     cd RasterTools
 
   
-#. Create a Python virtual environment using the preferred tool (here we use [uv](curl -LsSf https://astral.sh/uv/install.sh | sh
-)).::
+#. Create a Python virtual environment using the preferred tool (here we use `uv <https://astral.sh/uv/>`_).::
 
     uv venv --python 3.10
     source .venv/bin/activate
