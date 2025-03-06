@@ -108,7 +108,7 @@ html_last_updated_fmt = '%Y-%b-%d'
 html_show_sourcelink = True
 html_show_sphinx = False
 html_copy_source = False
-htmlhelp_basename = 'Starsim'
+htmlhelp_basename = 'RasterToolkit'
 
 # Add customizations
 def setup(app):
@@ -120,7 +120,7 @@ nbsphinx_execute = 'always'
 nbsphinx_timeout = 300
 
 # OpenSearch options
-html_use_opensearch = 'docs.idmod.org/projects/starsim/en/latest'
+html_use_opensearch = 'docs.idmod.org/projects/rastertoolkit/en/latest'
 
 # -- RTD Sphinx search for searching across the entire domain, default child -------------
 if os.environ.get('READTHEDOCS') == 'True':
