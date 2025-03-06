@@ -1,6 +1,6 @@
 ﻿raster\_clip\_weighted
 ======================
 
-.. currentmodule:: rastertools
+.. currentmodule:: rastertoolkit
 
 .. autofunction:: raster_clip_weighted

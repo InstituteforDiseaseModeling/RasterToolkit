@@ -1,6 +1,6 @@
 ﻿shape\_subdivide
 ================
 
-.. currentmodule:: rastertools
+.. currentmodule:: rastertoolkit
 
 .. autofunction:: shape_subdivide

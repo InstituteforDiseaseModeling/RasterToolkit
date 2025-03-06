@@ -1,6 +1,6 @@
 default\_summary\_func
 ======================
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: default_summary_func

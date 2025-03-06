@@ -1,6 +1,6 @@
 shapes\_to\_polygons
 ====================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: shapes_to_polygons

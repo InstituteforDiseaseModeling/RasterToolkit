@@ -1,6 +1,6 @@
 area\_sphere
 ============
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: area_sphere

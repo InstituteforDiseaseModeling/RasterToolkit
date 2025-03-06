@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from typing import Dict
 
-from rastertools import raster_clip, raster_clip_weighted, utils
+from rastertoolkit import raster_clip, raster_clip_weighted, utils
 from pytest_init import change_test_dir  # don't remove
 
 

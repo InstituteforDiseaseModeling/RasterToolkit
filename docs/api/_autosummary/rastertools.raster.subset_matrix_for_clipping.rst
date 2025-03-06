@@ -1,6 +1,6 @@
 subset\_matrix\_for\_clipping
 =============================
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: subset_matrix_for_clipping

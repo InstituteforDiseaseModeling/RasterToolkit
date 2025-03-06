@@ -1,7 +1,7 @@
 # Examples
-Examples are meant to illustrate main usage scenarios for `rastertools` API functions.  
+Examples are meant to illustrate main usage scenarios for `rastertoolkit` API functions.  
 
-Before running any of the examples install the `rastertools` package as described in the `Setup` steps in the main [README](../README.md)  
+Before running any of the examples install the `rastertoolkit` package as described in the `Setup` steps in the main [README](../README.md)  
 
 ## Extracting Population from WorldPop 
 This example shows how to use `raster_clip` function to extract population data from WorldPop raster files based on shapes.  

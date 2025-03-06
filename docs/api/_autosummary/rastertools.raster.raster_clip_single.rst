@@ -1,6 +1,6 @@
 raster\_clip\_single
 ====================
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: raster_clip_single

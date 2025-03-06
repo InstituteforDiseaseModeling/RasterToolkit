@@ -1,6 +1,6 @@
 polygon\_to\_coords
 ===================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: polygon_to_coords

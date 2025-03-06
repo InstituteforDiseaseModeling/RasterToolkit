@@ -1,25 +1,15 @@
 ﻿raster
 ======
 
-.. automodule:: rastertools.raster
+.. automodule:: rastertoolkit.raster
 
-   
-   
-   
-
-   
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :template: custom-function-template.rst
       :nosignatures:
-   
+
       default_summary_func
       extract_xy_info_from_raster
       get_tiff_tags
@@ -32,14 +22,3 @@
       raster_clip_weighted
       subset_matrix_for_clipping
       summary_entry
-   
-   
-
-   
-   
-   
-
-
-
-
-

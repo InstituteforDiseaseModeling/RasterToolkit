@@ -1,6 +1,6 @@
 read\_json
 ==========
 
-.. currentmodule:: rastertools.utils
+.. currentmodule:: rastertoolkit.utils
 
 .. autofunction:: read_json

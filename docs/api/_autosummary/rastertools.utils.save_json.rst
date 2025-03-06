@@ -1,6 +1,6 @@
 save\_json
 ==========
 
-.. currentmodule:: rastertools.utils
+.. currentmodule:: rastertoolkit.utils
 
 .. autofunction:: save_json

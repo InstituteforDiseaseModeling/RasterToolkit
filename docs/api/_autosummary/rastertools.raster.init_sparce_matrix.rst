@@ -1,6 +1,6 @@
 init\_sparce\_matrix
 ====================
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: init_sparce_matrix

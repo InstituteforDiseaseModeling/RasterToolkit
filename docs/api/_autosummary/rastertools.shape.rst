@@ -1,34 +1,24 @@
 ﻿shape
 =====
 
-.. automodule:: rastertools.shape
+.. automodule:: rastertoolkit.shape
 
-   
-   
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
       :toctree:
       :template: custom-class-template.rst
       :nosignatures:
-   
-      ShapeView
-   
-   
 
-   
-   
+      ShapeView
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :template: custom-function-template.rst
       :nosignatures:
-   
+
       area_sphere
       centroid_area
       long_mult
@@ -41,14 +31,3 @@
       shape_subdivide
       shapes_to_polygons
       shapes_to_polygons_dict
-   
-   
-
-   
-   
-   
-
-
-
-
-

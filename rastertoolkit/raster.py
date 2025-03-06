@@ -11,7 +11,7 @@ from PIL.TiffTags import TAGS
 from scipy import interpolate
 from pathlib import Path
 from typing import Any, Union, Callable
-from rastertools.shape import ShapeView
+from rastertoolkit.shape import ShapeView
 
 
 def raster_clip(

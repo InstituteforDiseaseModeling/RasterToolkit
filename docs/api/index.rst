@@ -2,9 +2,9 @@
 API reference
 =============
 
-.. currentmodule:: rastertools
+.. currentmodule:: rastertoolkit
 
-This page lists RasterTools's full API, including all functions and classes.
+This page lists RasterToolkit's full API, including all functions and classes.
 
 Main functions
 --------------
@@ -28,8 +28,7 @@ Modules
    :recursive:
    :nosignatures:
 
-   rastertools.shape
-   rastertools.raster
-   rastertools.shape
-   rastertools.utils
-
+   rastertoolkit.shape
+   rastertoolkit.raster
+   rastertoolkit.shape
+   rastertoolkit.utils

@@ -5,7 +5,7 @@ import sys
 from shapely.geometry import Polygon
 from pyproj import Geod
 
-from rastertools.shape import ShapeView, area_sphere, centroid_area
+from rastertoolkit.shape import ShapeView, area_sphere, centroid_area
 from pytest_init import change_test_dir  # don't remove
 
 
