@@ -1,6 +1,6 @@
 summary\_entry
 ==============
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: summary_entry

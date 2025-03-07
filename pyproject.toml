@@ -1,5 +1,5 @@
 [project]
-name = "rastertools"
+name = "rastertoolkit"
 dynamic = ["version"]
 description = "Raster and shape tools"
 license = {file = "LICENSE"}
@@ -19,13 +19,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/InstituteforDiseaseModeling/RasterTools"
+Homepage = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
 
 [tool.setuptools.dynamic]
-version = {attr = "rastertools.version.__version__"}
+version = {attr = "rastertoolkit.version.__version__"}
 
 [tool.pixi.project]
 channels = ["conda-forge"]

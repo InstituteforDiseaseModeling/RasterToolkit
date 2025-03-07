@@ -1,6 +1,6 @@
 get\_tiff\_tags
 ===============
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: get_tiff_tags

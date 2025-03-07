@@ -1,6 +1,6 @@
 is\_interior
 ============
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: is_interior

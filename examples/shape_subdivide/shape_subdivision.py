@@ -6,8 +6,8 @@ sub-shapes.
 
 import time
 
-from rastertools import shape_subdivide
-from rastertools.shape import plot_subdivision
+from rastertoolkit import shape_subdivide
+from rastertoolkit.shape import plot_subdivision
 
 from pathlib import Path
 

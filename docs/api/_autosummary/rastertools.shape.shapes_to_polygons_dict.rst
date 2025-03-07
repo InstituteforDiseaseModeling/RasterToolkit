@@ -1,6 +1,6 @@
 shapes\_to\_polygons\_dict
 ==========================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: shapes_to_polygons_dict

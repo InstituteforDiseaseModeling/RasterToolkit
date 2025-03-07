@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-Example showing how to use rastertools API to population data from WorldPop
+Example showing how to use rastertoolkit API to population data from WorldPop
 raster using shapes and selectors.
 """
 
 import csv
 
 from pathlib import Path
-from rastertools import raster_clip, utils
+from rastertoolkit import raster_clip, utils
 from typing import Dict
 
 # Using example DRC shapefile and raster

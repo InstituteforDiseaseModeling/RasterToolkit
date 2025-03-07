@@ -1,6 +1,6 @@
 extract\_archive
 ================
 
-.. currentmodule:: rastertools.utils
+.. currentmodule:: rastertoolkit.utils
 
 .. autofunction:: extract_archive

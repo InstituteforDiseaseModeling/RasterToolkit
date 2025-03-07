@@ -10,7 +10,7 @@ NLS = '"\n'
 
 def bump_version():
 
-    fname = os.path.join('rastertools', 'version.py')
+    fname = os.path.join('rastertoolkit', 'version.py')
 
     with open(fname) as fid01:
         flines = fid01.readlines()

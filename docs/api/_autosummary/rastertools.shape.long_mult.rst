@@ -1,6 +1,6 @@
 long\_mult
 ==========
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: long_mult

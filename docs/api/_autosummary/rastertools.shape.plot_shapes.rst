@@ -1,6 +1,6 @@
 plot\_shapes
 ============
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: plot_shapes

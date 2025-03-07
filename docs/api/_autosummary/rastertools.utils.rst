@@ -1,18 +1,8 @@
-﻿rastertools.utils
-=================
+﻿rastertoolkit.utils
+===================
 
-.. automodule:: rastertools.utils
+.. automodule:: rastertoolkit.utils
 
-   
-   
-   
-
-   
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -24,14 +14,3 @@
       read_json
       save_json
       sha256
-   
-   
-
-   
-   
-   
-
-
-
-
-

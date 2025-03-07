@@ -1,6 +1,6 @@
 plot\_subdivision
 =================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: plot_subdivision

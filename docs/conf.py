@@ -5,14 +5,14 @@
 import os
 import sys
 import sciris as sc
-import rastertools as rt
+import rastertoolkit as rt
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'RasterTools'
-copyright = f'2022 - {sc.now().year}, Bill & Melinda Gates Foundation. All rights reserved. These docs were built for RasterTools v{rt.__version__}'
+project = 'RasterToolkit'
+copyright = f'2022 - {sc.now().year}, Bill & Melinda Gates Foundation. All rights reserved. These docs were built for RasterToolkit v{rt.__version__}'
 author = 'Institute for Disease Modeling'
 
 # The short X.Y version
@@ -53,7 +53,7 @@ templates_path = ["_templates"]
 
 # Syntax highlighting style
 pygments_style = "sphinx"
-modindex_common_prefix = ["rastertools."]
+modindex_common_prefix = ["rastertoolkit."]
 
 # List of patterns, relative to source directory, to exclude
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
@@ -73,7 +73,7 @@ html_theme_options = {
         {"name": "Web", "url": "https://www.idmod.org/", "icon": "fas fa-home"},
         {
             "name": "GitHub",
-            "url": "https://github.com/InstituteforDiseaseModeling/RasterTools",
+            "url": "https://github.com/InstituteforDiseaseModeling/RasterToolkit",
             "icon": "fab fa-github-square",
         },
     ],
@@ -89,9 +89,9 @@ html_sidebars = {
 html_logo = "images/idm-logo-transparent.png"
 html_favicon = "images/favicon.ico"
 html_static_path = ['_static']
-html_baseurl = "https://github.com/InstituteforDiseaseModeling/RasterTools"
+html_baseurl = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 html_context = {
-    'rtd_url': 'https://github.com/InstituteforDiseaseModeling/RasterTools',
+    'rtd_url': 'https://github.com/InstituteforDiseaseModeling/RasterToolkit',
     "versions_dropdown": {
         "latest": "devel (latest)",
         "stable": "current (stable)",
@@ -108,7 +108,7 @@ html_last_updated_fmt = '%Y-%b-%d'
 html_show_sourcelink = True
 html_show_sphinx = False
 html_copy_source = False
-htmlhelp_basename = 'Starsim'
+htmlhelp_basename = 'RasterToolkit'
 
 # Add customizations
 def setup(app):
@@ -120,7 +120,7 @@ nbsphinx_execute = 'always'
 nbsphinx_timeout = 300
 
 # OpenSearch options
-html_use_opensearch = 'docs.idmod.org/projects/starsim/en/latest'
+html_use_opensearch = 'docs.idmod.org/projects/rastertoolkit/en/latest'
 
 # -- RTD Sphinx search for searching across the entire domain, default child -------------
 if os.environ.get('READTHEDOCS') == 'True':

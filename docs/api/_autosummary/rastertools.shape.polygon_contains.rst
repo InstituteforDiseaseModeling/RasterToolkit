@@ -1,6 +1,6 @@
 polygon\_contains
 =================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: polygon_contains

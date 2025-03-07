@@ -1,6 +1,6 @@
 print\_status
 =============
 
-.. currentmodule:: rastertools.raster
+.. currentmodule:: rastertoolkit.raster
 
 .. autofunction:: print_status

@@ -1,4 +1,4 @@
-.. title:: RasterTools
+.. title:: RasterToolkit
 
 
 .. include:: ../README.rst

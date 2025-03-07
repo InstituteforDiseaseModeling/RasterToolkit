@@ -1,6 +1,6 @@
 polygons\_to\_parts
 ===================
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: polygons_to_parts

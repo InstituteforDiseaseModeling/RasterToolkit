@@ -4,7 +4,7 @@ import re
 
 from typing import Dict
 
-from rastertools.shape import ShapeView, area_sphere, centroid_area, shape_subdivide
+from rastertoolkit.shape import ShapeView, area_sphere, centroid_area, shape_subdivide
 from pytest_init import change_test_dir  # don't remove
 
 from pathlib import Path

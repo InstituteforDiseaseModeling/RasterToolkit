@@ -1,4 +1,4 @@
-# RasterTools docs
+# RasterToolkit docs
 
 ## Tutorials
 

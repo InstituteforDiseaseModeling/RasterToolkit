@@ -1,6 +1,6 @@
 sha256
 ======
 
-.. currentmodule:: rastertools.utils
+.. currentmodule:: rastertoolkit.utils
 
 .. autofunction:: sha256

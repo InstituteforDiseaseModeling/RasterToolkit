@@ -1,6 +1,6 @@
 centroid\_area
 ==============
 
-.. currentmodule:: rastertools.shape
+.. currentmodule:: rastertoolkit.shape
 
 .. autofunction:: centroid_area
