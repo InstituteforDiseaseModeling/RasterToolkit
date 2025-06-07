@@ -167,18 +167,18 @@ def raster_clip_weighted(
         func = weight_summary_func or default_summary_func
         entry = {"pop": func(values), "val": final_val}
         d = summary_entry(shp, entry, include_latlon)
-        print_status(shp, {k1: d}, k1, n_shapes)
-        return k1, d
+        print_status(shp, {shp.name: d}, k1, n_shapes)
+        return k1, shp.name, d
 
     n_shapes = len(shapes)
     results = [None] * n_shapes
     with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 1)) as executor:
         futures = {executor.submit(_clip_weighted_single, shp, k1, n_shapes): k1 for k1, shp in enumerate(shapes)}
         for future in as_completed(futures):
-            k1, result = future.result()
-            results[k1] = result
-    # Combine results into a dict with integer keys (or convert to list, as needed)
-    data_dict = {k: results[k] for k in range(n_shapes)}
+            k1, name, result = future.result()
+            results[k1] = (name, result)
+    # Combine results into a dict with shp.name keys in the original order
+    data_dict = {name: result for name, result in results}
     return data_dict
 
 
