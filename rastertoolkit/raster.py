@@ -170,8 +170,7 @@ def raster_clip_weighted(
         return d
 
     data_dict = dict()
-    from concurrent.futures import ThreadPoolExecutor
-    import os
+    # Removed redundant imports for ThreadPoolExecutor and os
     n_shapes = len(shapes)
     with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 1)) as executor:
         futures = {executor.submit(_clip_weighted_single, shp, k1, n_shapes): k1 for k1, shp in enumerate(shapes)}
