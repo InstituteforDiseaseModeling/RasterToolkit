@@ -5,7 +5,8 @@ Functions for spatial processing of raster TIFF files.
 import numpy as np
 import os
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import concurrent.futures
 from PIL import Image
 from PIL.TiffTags import TAGS
 from scipy import interpolate
@@ -165,21 +166,19 @@ def raster_clip_weighted(
         values = pop_clip[data_bool, 2]
         func = weight_summary_func or default_summary_func
         entry = {"pop": func(values), "val": final_val}
-        d = {shp.name: summary_entry(shp, entry, include_latlon)}
-        print_status(shp, d, k1, n_shapes)
-        return d
+        d = summary_entry(shp, entry, include_latlon)
+        print_status(shp, {k1: d}, k1, n_shapes)
+        return k1, d
 
-    data_dict = dict()
-    # Removed redundant imports for ThreadPoolExecutor and os
     n_shapes = len(shapes)
+    results = [None] * n_shapes
     with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 1)) as executor:
         futures = {executor.submit(_clip_weighted_single, shp, k1, n_shapes): k1 for k1, shp in enumerate(shapes)}
-        for future in concurrent.futures.as_completed(futures):
-            k1 = futures[future]
-            try:
-                data_dict.update(future.result())
-            except Exception as e:
-                print(f"Error processing future: {e}")
+        for future in as_completed(futures):
+            k1, result = future.result()
+            results[k1] = result
+    # Combine results into a dict with integer keys (or convert to list, as needed)
+    data_dict = {k: results[k] for k in range(n_shapes)}
     return data_dict
 
 
