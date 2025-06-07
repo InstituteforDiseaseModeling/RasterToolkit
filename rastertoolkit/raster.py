@@ -174,7 +174,8 @@ def raster_clip_weighted(
     n_shapes = len(shapes)
     with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 1)) as executor:
         futures = {executor.submit(_clip_weighted_single, shp, k1, n_shapes): k1 for k1, shp in enumerate(shapes)}
-        for future in futures:
+        for future in concurrent.futures.as_completed(futures):
+            k1 = futures[future]
             try:
                 data_dict.update(future.result())
             except Exception as e:
