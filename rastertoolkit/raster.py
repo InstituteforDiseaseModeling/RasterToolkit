@@ -133,6 +133,16 @@ def raster_clip_weighted(
 ) -> dict[str, Union[float, int]]:
     """
     Extracts data from a raster based on shapes.
+
+    Args:
+        raster_weight (str): Local path to a raster file used for weights.
+        raster_value (str): Local path to a raster file used for values.
+        shape_stem (str): Local path stem referencing a set of shape files.
+        shape_attr (str): The shape attribute name to be used as the output dictionary key.
+        weight_summary_func (Callable): Aggregation function to be used for summarizing clipped data for each shape.
+        include_latlon (bool, optional): Flag to include lat/lon in the dictionary entry. Defaults to False.
+    Returns:
+        dict: A dictionary with dot names as keys and calculated aggregations as values.    
     """
     assert Path(raster_weight).is_file(), "Population raster file not found."
     assert Path(raster_value).is_file(), "Values raster file not found."
