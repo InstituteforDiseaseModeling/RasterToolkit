@@ -5,7 +5,8 @@ Functions for spatial processing of raster TIFF files.
 import numpy as np
 import os
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import concurrent.futures
 from PIL import Image
 from PIL.TiffTags import TAGS
 from scipy import interpolate
@@ -141,9 +142,8 @@ def raster_clip_weighted(
         shape_attr (str): The shape attribute name to be used as the output dictionary key.
         weight_summary_func (Callable): Aggregation function to be used for summarizing clipped data for each shape.
         include_latlon (bool, optional): Flag to include lat/lon in the dictionary entry. Defaults to False.
-
     Returns:
-        dict: A dictionary with dot names as keys and calculated aggregations as values.
+        dict: A dictionary with dot names as keys and calculated aggregations as values.    
     """
     assert Path(raster_weight).is_file(), "Population raster file not found."
     assert Path(raster_value).is_file(), "Values raster file not found."
@@ -157,35 +157,28 @@ def raster_clip_weighted(
     sparce_pop = init_sparce_matrix(raster_weights)
     sparce_val = init_sparce_matrix(raster_values)
 
-    # Output dictionary
-    data_dict = dict()
-
-    # Iterate over shapes in shapefile
-    for k1, shp in enumerate(shapes):
-        # Null shape; error in shapefile
+    def _clip_weighted_single(shp, k1, n_shapes):
         shp.validate()
-
-        # Subset matrices for clipping
         pop_clip = subset_matrix_for_clipping(shape=shp, sparce_data=sparce_pop)
         val_clip = subset_matrix_for_clipping(shape=shp, sparce_data=sparce_val, pad=1)
-
-        # Track booleans (indicates if lat/long is interior)
         data_bool = is_interior(shp, pop_clip)
-
-        # Interpolate at population data
         final_val = interpolate_at_weight_data(shp, pop_clip, val_clip, data_bool)
-
-        # Pop values
         values = pop_clip[data_bool, 2]
+        func = weight_summary_func or default_summary_func
+        entry = {"pop": func(values), "val": final_val}
+        d = summary_entry(shp, entry, include_latlon)
+        print_status(shp, {shp.name: d}, k1, n_shapes)
+        return k1, shp.name, d
 
-        # Entry dictionary
-        weight_summary_func = weight_summary_func or default_summary_func
-        entry = {"pop": weight_summary_func(values), "val": final_val}
-
-        # Set entry and print status
-        data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
-        print_status(shp, data_dict, k1, len(shapes))
-
+    n_shapes = len(shapes)
+    results = [None] * n_shapes
+    with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 1)) as executor:
+        futures = {executor.submit(_clip_weighted_single, shp, k1, n_shapes): k1 for k1, shp in enumerate(shapes)}
+        for future in as_completed(futures):
+            k1, name, result = future.result()
+            results[k1] = (name, result)
+    # Combine results into a dict with shp.name keys in the original order
+    data_dict = {name: result for name, result in results}
     return data_dict
 
 
