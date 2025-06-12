@@ -32,7 +32,7 @@ jobs:
     - build
     environment:
       name: pypi
-      url: https://pypi.org/p/rastertoolkit
+      url: https://pypi.org/project/rastertoolkit
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
