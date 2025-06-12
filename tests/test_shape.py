@@ -36,6 +36,15 @@ def test_shape_load_from_file(shape_file):
 
 
 @pytest.mark.unit
+def test_shape_load_from_file_filter(shape_file):
+    """Testing loading of a single shape from a file olf many shapes."""
+    shapes = ShapeView.from_file(shape_file, attr_filter=pytest.expected_name)
+    assert len(shapes) == 1
+    for shp in shapes:
+        shp.validate()
+
+
+@pytest.mark.unit
 def test_shape_properties(one_shape):
     """Testing shape view object properties."""
     shp = one_shape
