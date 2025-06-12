@@ -7,19 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
-
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Python and Git
         uses: ./.github/actions/setup-python-and-git
         with:
           python-version: '3.10'
-
       - name: Install dependencies
         run: |
           git pull --all
@@ -28,31 +25,28 @@ jobs:
           source .venv/bin/activate
           uv pip install .
           uv pip install -r docs/requirements.txt
-
       - name: Build static files
         id: build
         env:
-          ZENODO_API_TOKEN: ${{ secrets.ZENODO_API_TOKEN }}            
+          ZENODO_API_TOKEN: ${{ secrets.ZENODO_API_TOKEN }}
         run: |
           cd docs
           uv run bash build_docs
-
       - name: Upload static files as artifact
-        id: deployment
         uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+        id: deployment
         with:
           path: docs/_build/html
 
   # Deployment job
   deploy:
-      
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     permissions:
       id-token: write
-      pages: write    
+      pages: write
     needs: build
     steps:
       - name: Deploy to GitHub Pages
