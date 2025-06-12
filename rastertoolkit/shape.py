@@ -101,7 +101,10 @@ class ShapeView:
 
     @classmethod
     def from_file(
-        cls, shape_stem: Union[str, Path, Reader], shape_attr: Union[str, None] = None
+        cls,
+        shape_stem: Union[str, Path, Reader],
+        shape_attr: Union[str, None] = None,
+        attr_filter: Union[str, None] = None,
     ) -> list[ShapeView]:
         """
         Loads a shape into a shape view class.
@@ -123,6 +126,10 @@ class ShapeView:
         for k1 in range(len(sf1r)):
             # First (only) field in shapefile record is dot-name
             shp = cls(shape=sf1s[k1], record=sf1r[k1], name_attr=shape_attr)
+
+            # Only retain shapes with specified name
+            if (attr_filter and not shp.name.startswith(attr_filter)):
+                continue
 
             # List of parts in (potentially) multi-part shape
             prt_list = list(shp.shape.parts) + [len(shp.points)]

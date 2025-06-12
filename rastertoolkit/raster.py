@@ -18,6 +18,7 @@ def raster_clip(
     raster_file: Union[str, Path],
     shape_stem: Union[str, Path],
     shape_attr: str = "DOTNAME",
+    attr_filter: Union[str, None] = None,
     summary_func: Callable = None,
     include_latlon: bool = False,
     quiet: bool = False,
@@ -41,7 +42,7 @@ def raster_clip(
     print("Loading data...")
 
     # Load data, init sparce matrix
-    shapes = ShapeView.from_file(shape_stem, shape_attr)
+    shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
     raster = Image.open(raster_file)
     sparce_data = init_sparce_matrix(raster)
 
@@ -128,6 +129,7 @@ def raster_clip_weighted(
     raster_value: Union[str, Path],
     shape_stem: Union[str, Path],
     shape_attr: str = "DOTNAME",
+    attr_filter: Union[str, None] = None,
     weight_summary_func: Callable = None,
     include_latlon: bool = False,
 ) -> dict[str, Union[float, int]]:
@@ -149,7 +151,7 @@ def raster_clip_weighted(
     assert Path(raster_value).is_file(), "Values raster file not found."
 
     # Load data shape and rasters
-    shapes = ShapeView.from_file(shape_stem, shape_attr)
+    shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
     raster_weights = Image.open(raster_weight)
     raster_values = Image.open(raster_value)
 
