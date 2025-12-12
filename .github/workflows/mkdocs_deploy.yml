@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths: 
-      - 'mkdocs.yml'
-      - 'docs/**'
 
   # Allows manual run from the Actions tab
   workflow_dispatch:
