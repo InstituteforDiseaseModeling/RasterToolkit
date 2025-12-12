@@ -18,7 +18,7 @@ dependencies = [
     "matplotlib~=3.9",
     "pyshp~=3.0",
     "pyproj~=3.6",
-    "scikit-learn~=1.8",
+    "scikit-learn~=1.6",
     "shapely~=2.1",
 ]
 license = "MIT"
