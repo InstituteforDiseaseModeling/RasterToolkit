@@ -5,7 +5,12 @@ from pathlib import Path
 from typing import Dict
 
 from rastertoolkit import raster_clip, raster_clip_weighted, utils
-from pytest_init import change_test_dir  # don't remove
+
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    """Ensure the correct working directory is set."""
+    monkeypatch.chdir(request.fspath.dirname)
 
 
 def setup_function() -> None:

@@ -3,9 +3,14 @@ import pytest
 import re
 
 from rastertoolkit.shape import ShapeView, area_sphere, centroid_area, shape_subdivide
-from pytest_init import change_test_dir  # don't remove
 
 from pathlib import Path
+
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    """Ensure the correct working directory is set."""
+    monkeypatch.chdir(request.fspath.dirname)
 
 
 def setup_module():

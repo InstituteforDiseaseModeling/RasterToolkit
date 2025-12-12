@@ -1,4 +1,3 @@
-from .version import __version__, __versiondate__, __license__  # noqa : F401
 from rastertoolkit.raster import raster_clip, raster_clip_weighted  # noqa : F401
 from rastertoolkit.shape import shape_subdivide  # noqa : F401
 

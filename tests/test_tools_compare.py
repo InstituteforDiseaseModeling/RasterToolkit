@@ -6,7 +6,12 @@ from shapely.geometry import Polygon
 from pyproj import Geod
 
 from rastertoolkit.shape import ShapeView, area_sphere, centroid_area
-from pytest_init import change_test_dir  # don't remove
+
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    """Ensure the correct working directory is set."""
+    monkeypatch.chdir(request.fspath.dirname)
 
 
 def setup_function() -> None:

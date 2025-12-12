@@ -303,11 +303,7 @@ def area_sphere(shape_points) -> float:
     beta2 = sp_rad[1:, 1]
     domeg = sp_rad[1:, 0] - sp_rad[:-1, 0]
 
-    val1 = (
-        np.tan(domeg / 2)
-        * np.sin((beta2 + beta1) / 2.0)
-        * np.cos((beta2 - beta1) / 2.0)
-    )
+    val1 = np.tan(domeg / 2) * np.sin((beta2 + beta1) / 2.0) * np.cos((beta2 - beta1) / 2.0)
     dalph = 2.0 * np.arctan(val1)
     tarea = 6371.0 * 6371.0 * np.sum(dalph)
 
@@ -330,10 +326,7 @@ def centroid_area(shape_points) -> tuple[float, float, float]:
         tuple: A tuple containing the centroid coordinates and area as floats (Cx, Cy, A).
     """
 
-    a_vec = (
-        shape_points[:-1, 0] * shape_points[1:, 1]
-        - shape_points[1:, 0] * shape_points[:-1, 1]
-    )
+    a_vec = shape_points[:-1, 0] * shape_points[1:, 1] - shape_points[1:, 0] * shape_points[:-1, 1]
 
     A = np.sum(a_vec) / 2.0
     Cx = np.sum((shape_points[:-1, 0] + shape_points[1:, 0]) * a_vec) / 6.0 / A
