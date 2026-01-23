@@ -49,3 +49,6 @@ test = [
 Documentation = "https://institutefordiseasemodeling.github.io/RasterToolkit/"
 Repository = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
+
+[tool.bumpversion]
+current_version = "0.4.1"
