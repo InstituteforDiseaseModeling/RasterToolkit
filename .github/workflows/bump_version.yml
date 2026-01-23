@@ -31,4 +31,4 @@ jobs:
         run: |
           git config --global user.name "IDM Tools"
           git config --global user.email "idmtools@idmod.org"
-          bump-my-version bump patch --vv --dry-run
+          bump-my-version bump patch --dry-run -vv
