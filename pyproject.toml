@@ -52,3 +52,4 @@ Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
 
 [tool.bumpversion]
 current_version = "0.4.1"
+commit = true

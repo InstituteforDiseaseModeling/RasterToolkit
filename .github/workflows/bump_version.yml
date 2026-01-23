@@ -21,4 +21,4 @@ jobs:
       - name: Bump version
         uses: callowayproject/bump-my-version@master
         with:
-          args: patch -vv --dry-run
+          args: patch -vv
