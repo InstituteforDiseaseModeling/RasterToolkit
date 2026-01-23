@@ -53,3 +53,6 @@ Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
 [tool.bumpversion]
 current_version = "0.4.2"
 commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
