@@ -41,7 +41,7 @@ lint = [
     "flake8",
 ]
 packaging = [
-    "bump2version",
+    "bump-my-version",
 ]
 test = [
     "pytest",
@@ -52,3 +52,7 @@ test = [
 Documentation = "https://institutefordiseasemodeling.github.io/RasterToolkit/"
 Repository = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
+
+[tool.bumpversion]
+message = "Bump version: {version} → {new_version}"
+search = "{version}"
