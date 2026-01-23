@@ -18,12 +18,6 @@ jobs:
   bump-version:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-      - name: Configure Git
-        run: |
-          git config --global user.name "IDM Tools"
-          git config --global user.email "idmtools@idmod.org"
       - name: Bump version
         uses: callowayproject/bump-my-version@master
         with:
