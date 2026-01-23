@@ -19,6 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Bump version
-        uses: callowayproject/bump-my-version@1.2
+        uses: callowayproject/bump-my-version@1.2.6
         with:
           args: patch -vv
