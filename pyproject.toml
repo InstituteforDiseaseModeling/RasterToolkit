@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rastertoolkit"
-version = "0.4.1"
+version = "0.4.2"
 description = "Raster and shape tools"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -51,5 +51,5 @@ Repository = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
 
 [tool.bumpversion]
-current_version = "0.4.1"
+current_version = "0.4.2"
 commit = true
