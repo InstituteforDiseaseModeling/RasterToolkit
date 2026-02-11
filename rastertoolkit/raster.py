@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any, Union, Callable
 from tifffile import TiffFile, TiffPage
 from rastertoolkit.shape import ShapeView
-import warnings
 
 
 def raster_clip(
