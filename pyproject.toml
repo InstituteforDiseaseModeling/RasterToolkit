@@ -7,11 +7,11 @@ name = "rastertoolkit"
 version = "0.4.5"
 description = "Raster and shape tools"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
-    { name="Kurt Frey", email="kurt.frey@gatesfoundation.org" },
-    { name="Dejan Lukacevic", email="dejan.lukacevic@gatesfoundation.org" },
-    { name="Katherine Rosenfeld", email="katherine.rosenfeld@gatesfoundation.org" }
+    {name = "Kurt Frey", email = "kurt.frey@gatesfoundation.org"},
+    {name = "Dejan Lukacevic", email = "dejan.lukacevic@gatesfoundation.org"},
+    {name = "Katherine Rosenfeld", email = "katherine.rosenfeld@gatesfoundation.org"},
 ]
 keywords = ['modeling', 'IDM']
 dependencies = [
@@ -20,11 +20,17 @@ dependencies = [
     "pyproj~=3.6",
     "scikit-learn~=1.6",
     "shapely~=2.0",
+    "tifffile~=2026.0[all],"
 ]
 license = "MIT"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
 ]
 
@@ -43,6 +49,7 @@ lint = [
 test = [
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
 ]
 
 [project.urls]

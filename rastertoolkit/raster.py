@@ -6,11 +6,10 @@ import numpy as np
 import os
 
 from concurrent.futures import ThreadPoolExecutor
-from PIL import Image
-from PIL.TiffTags import TAGS
 from scipy import interpolate
 from pathlib import Path
 from typing import Any, Union, Callable
+from tifffile import TiffFile, TiffPage
 from rastertoolkit.shape import ShapeView
 import warnings
 
@@ -44,8 +43,8 @@ def raster_clip(
 
     # Load data, init sparse matrix
     shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
-    raster = Image.open(raster_file)
-    sparse_data = init_sparse_matrix(raster)
+    raster = TiffFile(raster_file)
+    sparse_data = init_sparse_matrix(raster.pages[0])
 
     # Output dictionary
     data_dict = dict()
@@ -159,12 +158,12 @@ def raster_clip_weighted(
 
     # Load data shape and rasters
     shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
-    raster_weights = Image.open(raster_weight)
-    raster_values = Image.open(raster_value)
+    raster_weights = TiffFile(raster_weight)
+    raster_values = TiffFile(raster_value)
 
     # Init sparse matrices
-    sparse_pop = init_sparse_matrix(raster_weights)
-    sparse_val = init_sparse_matrix(raster_values)
+    sparse_pop = init_sparse_matrix(raster_weights.pages[0])
+    sparse_val = init_sparse_matrix(raster_values.pages[0])
 
     # Output dictionary
     data_dict = dict()
@@ -203,28 +202,25 @@ def default_summary_func(v: np.ndarray) -> int:
     return int(np.round(np.sum(v), 0))
 
 
-def get_tiff_tags(raster: Image) -> dict[str, Any]:
+def get_tiff_tags(raster: TiffPage) -> dict[str, Any]:
     """
-    Reads tags from a TIFF file.
-
-    Reference:
-        https://stackoverflow.com/questions/46477712/reading-tiff-image-metadata-in-python
+    Reads tags from a TiffPage object.
 
     Args:
-        raster (TIFF): TIFF object.
+        raster (TiffPage): Single tiff layer.
 
     Returns:
         dict: A dictionary of tag names and values.
     """
-    return {TAGS[t]: raster.tag[t] for t in dict(raster.tag)}
+    return {tag_obj.name: tag_obj.value for tag_obj in raster.tags)}
 
 
-def extract_xy_info_from_raster(raster: Image) -> tuple[float, float, float, float]:
+def extract_xy_info_from_raster(raster: TiffPage) -> tuple[float, float, float, float]:
     """
-    Extracts x, y, dx, and dy from a raster TIFF file.
+    Extracts x, y, dx, and dy from a TiffPage object.
 
     Args:
-        raster (TIFF): TIFF object.
+        raster (TiffPage): Single tiff layer.
 
     Returns:
     tuple: A tuple of x, y, dx, and dy.
@@ -242,17 +238,18 @@ def extract_xy_info_from_raster(raster: Image) -> tuple[float, float, float, flo
     assert -85 < y0 < 85, "Tie point y coordinate (latitude) have invalid range."
     assert 0 < dx < 1, "Pixel dx scale has invalid range."
     assert -1 < dy < 0, "Pixel dy scale has invalid range."
+    assert raster.nodata < 0, "Invalid no-data attribute; must be negative."
 
     return x0, y0, dx, dy
 
 
-def init_sparse_matrix(raster: Image) -> np.ndarray:
-    """Initialize a matrix from a raster TIFF file with values > 0"""
+def init_sparse_matrix(raster: TiffPage) -> np.ndarray:
+    """Initialize a matrix from a raster TiffPage object with values > 0"""
 
     # Extract data from raster
     x0, y0, dx, dy = extract_xy_info_from_raster(raster)
 
-    dat_mat = np.array(raster)
+    dat_mat = raster.asarray()
     xy_ints = np.argwhere(dat_mat > 0)
     sparse_data = np.zeros((xy_ints.shape[0], 3), dtype=float)
 
@@ -262,16 +259,6 @@ def init_sparse_matrix(raster: Image) -> np.ndarray:
     sparse_data[:, 2] = dat_mat[xy_ints[:, 0], xy_ints[:, 1]]
 
     return sparse_data
-
-
-# Backwards compatibility
-def init_sparce_matrix(raster: Image) -> np.ndarray:
-    warnings.warn(
-        '"init_sparce_matrix" is deprecated and will be removed in a future release. Use "init_sparse_matrix" instead.',
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return init_sparse_matrix(raster)
 
 
 def subset_matrix_for_clipping(
