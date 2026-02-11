@@ -237,7 +237,9 @@ def extract_xy_info_from_raster(raster: TiffPage) -> tuple[float, float, float, 
     assert -85 < y0 < 85, "Tie point y coordinate (latitude) have invalid range."
     assert 0 < dx < 1, "Pixel dx scale has invalid range."
     assert -1 < dy < 0, "Pixel dy scale has invalid range."
-    assert raster.nodata < 0, "Invalid no-data attribute; must be negative."
+    nodata = getattr(raster, "nodata", None)
+    if nodata is not None:
+        assert nodata < 0, "Invalid no-data attribute; must be negative."
 
     return x0, y0, dx, dy
 
