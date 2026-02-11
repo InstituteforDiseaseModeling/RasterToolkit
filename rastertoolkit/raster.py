@@ -212,7 +212,7 @@ def get_tiff_tags(raster: TiffPage) -> dict[str, Any]:
     Returns:
         dict: A dictionary of tag names and values.
     """
-    return {tag_obj.name: tag_obj.value for tag_obj in raster.tags)}
+    return {tag_obj.name: tag_obj.value for tag_obj in raster.tags}
 
 
 def extract_xy_info_from_raster(raster: TiffPage) -> tuple[float, float, float, float]:
