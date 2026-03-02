@@ -81,7 +81,7 @@ def test_shape_area_sphere(one_shape):
     parts = one_shape.shape.parts
     points: np.ndarray = one_shape.points[parts[0]:parts[1]]
     actual_area = area_sphere(points)
-    assert round(actual_area, 4), 729.4677
+    assert round(actual_area, 4) == 729.4677
 
 
 def test_shape_centroid_area(one_shape):
