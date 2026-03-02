@@ -84,9 +84,6 @@ cython_debug/
 # PyCharm
 .idea/
 
-# uv
-uv.lock
-
 # User-specific files
 *.csv
 *.dbf
