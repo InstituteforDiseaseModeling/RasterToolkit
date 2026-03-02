@@ -37,12 +37,8 @@ Install additional packages (like pytest)::
 ```
 Run `pytest` command::
 ```
-    # Run unit tests (recommended during development)
-    python -m pytest -m unit -v
-
-    # Run test for a specific module, for example
-    python -m pytest tests/test_shape.py -v     # run shape unit tests
-    python -m pytest tests/test_download.py -v  # run GDx download tests
+    # Run test for a specific module
+    python -m pytest -v tests/test_shape.py
 
     # All tests (before a commit or merging a PR)
     python -m pytest -v

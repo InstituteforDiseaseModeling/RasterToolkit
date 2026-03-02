@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-import sys
 
 from shapely.geometry import Polygon
 from pyproj import Geod
@@ -23,8 +22,6 @@ def setup_function() -> None:
 sphere_area_diff_perc = 0.005
 
 
-@pytest.mark.unit
-@pytest.mark.skipif('pyproj' not in sys.modules, reason="requires the 'pyproj' library")
 def test_area_sphere_vs_pyproj_simple():
     """Compare sphere area diff for simple cases"""
     all_diff_perc = []
@@ -41,8 +38,6 @@ def test_area_sphere_vs_pyproj_simple():
     assert np.mean(all_diff_perc) < sphere_area_diff_perc * 0.6
 
 
-@pytest.mark.unit
-@pytest.mark.skipif('pyproj' not in sys.modules, reason="requires the 'pyproj' library")
 def test_area_sphere_vs_pyproj_many():
     """Compare sphere area diff for shapes in the test shape file."""
     shapes = ShapeView.from_file(pytest.shape_file)
@@ -78,8 +73,6 @@ def calc_sphere_area_diff(points: np.ndarray):
 # Centroid function vs. Shapely
 
 
-@pytest.mark.unit
-@pytest.mark.skipif('shapely' not in sys.modules, reason="requires the 'Shapely' library")
 def test_centroid_area_all_shapes():
     """Testing the function for calculating shape centroid."""
     shapes = ShapeView.from_file(pytest.shape_file)
@@ -95,8 +88,6 @@ def test_centroid_area_all_shapes():
             validate_centroid(points, places=4)
 
 
-@pytest.mark.unit
-@pytest.mark.skipif('shapely' not in sys.modules, reason="requires the 'Shapely' library")
 def test_centroid_area_edge_case():
     points = np.array([
         [27.67629337, - 11.57355617],

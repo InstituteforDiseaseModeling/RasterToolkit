@@ -30,7 +30,6 @@ def one_shape(shape_file) -> ShapeView:
     return shapes_dict[pytest.expected_name]
 
 
-@pytest.mark.unit
 def test_shape_load_from_file(shape_file):
     """Testing loading of a shape file and creating a list of shape view objects."""
     shapes = ShapeView.from_file(shape_file)
@@ -39,7 +38,6 @@ def test_shape_load_from_file(shape_file):
         shp.validate()
 
 
-@pytest.mark.unit
 def test_shape_load_from_file_filter(shape_file):
     """Testing loading of a single shape from a file of many shapes."""
     shapes = ShapeView.from_file(shape_file, attr_filter=pytest.expected_name)
@@ -48,7 +46,6 @@ def test_shape_load_from_file_filter(shape_file):
         shp.validate()
 
 
-@pytest.mark.unit
 def test_shape_properties(one_shape):
     """Testing shape view object properties."""
     shp = one_shape
@@ -79,16 +76,14 @@ def test_shape_properties(one_shape):
     assert round(shp.center[1], 4) == -11.7542
 
 
-@pytest.mark.unit
 def test_shape_area_sphere(one_shape):
     """Testing the function for calculating shape sphere area."""
     parts = one_shape.shape.parts
     points: np.ndarray = one_shape.points[parts[0]:parts[1]]
     actual_area = area_sphere(points)
-    assert round(actual_area, 4), 729.4677
+    assert round(actual_area, 4) == 729.4677
 
 
-@pytest.mark.unit
 def test_shape_centroid_area(one_shape):
     shp = one_shape
 
@@ -104,32 +99,26 @@ def test_shape_centroid_area(one_shape):
 # Subdivision Tests
 
 
-@pytest.mark.unit
 def test_shape_sub_default(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file)
 
 
-@pytest.mark.unit
 def test_shape_sub_shp(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file.with_suffix(".shp"))
 
 
-@pytest.mark.unit
 def test_shape_sub_temp_dir(one_shape, shape_file, tmp_path):
     run_shape_sub_test(one_shape, shape_file, tmp_path)
 
 
-@pytest.mark.unit
 def test_shape_sub_400km(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file, target_area=400)
 
 
-@pytest.mark.unit
 def test_shape_sub_120pt(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file, points_per_box=120)
 
 
-@pytest.mark.unit
 def test_shape_sub_seed(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file, random_seed=10)
 
@@ -152,7 +141,6 @@ def run_shape_sub_test(one_shape, shape_file, tmp_path=None, target_area=None, p
     assert round(expected_area, 1) == round(actual_area, 1)
 
 
-@pytest.mark.unit
 def test_shape_sub_extra_field(shape_file, tmp_path):
     """Regression test: extra fields beyond DOTNAME must survive subdivision.
 

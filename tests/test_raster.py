@@ -19,7 +19,6 @@ def setup_function() -> None:
     pytest.vacc_raster_file = "data/IHME_MCV1_2012_MEAN_test.tif"
 
 
-@pytest.mark.unit
 def test_raster_clip():
     """Testing raster_clip with the default stats function (sum)."""
     actual_pop: Dict = raster_clip(pytest.raster_file, pytest.shape_file)
@@ -27,7 +26,6 @@ def test_raster_clip():
     assert expected_pop == actual_pop
 
 
-@pytest.mark.unit
 def test_raster_clip_stat_fn():
     """Testing raster_clip with a provided stats function."""
     actual_mean_pop: Dict = raster_clip(pytest.raster_file, pytest.shape_file, summary_func=np.mean)
@@ -39,7 +37,6 @@ def test_raster_clip_stat_fn():
         assert expected_sum_pop[k] >= int(actual_mean_pop[k])
 
 
-@pytest.mark.unit
 def test_raster_clip_weighted():
     actual_weighted: Dict = raster_clip_weighted(pytest.raster_file, pytest.vacc_raster_file, pytest.shape_file)
     expected_weighted: Dict = utils.read_json(Path("expected").joinpath("clipped_pop_weighted_sum.json"))

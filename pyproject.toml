@@ -13,7 +13,7 @@ authors = [
     {name = "Dejan Lukacevic", email = "dejan.lukacevic@gatesfoundation.org"},
     {name = "Katherine Rosenfeld", email = "katherine.rosenfeld@gatesfoundation.org"},
 ]
-keywords = ['modeling', 'IDM']
+keywords = ["modeling", "IDM"]
 dependencies = [
     "matplotlib~=3.9",
     "pyshp~=3.0",
