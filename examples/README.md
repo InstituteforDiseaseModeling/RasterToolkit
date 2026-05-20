@@ -15,12 +15,14 @@ python worldpop_clipping.py
 ```
 
 The example will generate a dictionary mapping shape names to summarized population:
+
 ![extracted pop 1](../docs/assets/extracted_pop_1.png)
 
 The `raster_clip` function also supports the `weighted raster clipping` scenario.
 You can see an example of this in [tests/test_raster.py](../tests/test_raster.py), in test `test_raster_clip_weighted`.
 
 The output in this case looks like this:
+
 ![extracted pop 2](../docs/assets/extracted_pop_2.png) 
 
 To generate EMOD Demographics use emdo_api to generate EMOD demographics from extracted pop data.
@@ -36,6 +38,7 @@ python worldpop_clipping.py
 ```
 
 After example is completed the `results` dir will contain the outputs:
+
 ![results](../docs/assets/subdivision_results_dir.png)
 
 The `shape_subdivide` function exposes three parameters you can use to tailor the subdivision layer:
