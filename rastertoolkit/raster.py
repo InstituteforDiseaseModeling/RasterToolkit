@@ -16,6 +16,8 @@ from rastertoolkit.shape import ShapeView
 def raster_clip(
     raster_file: Union[str, Path],
     shape_stem: Union[str, Path],
+    raster_page: int = 0,
+    raster_band: int = 0,
     shape_attr: str = "DOTNAME",
     attr_filter: Union[str, None] = None,
     summary_func: Callable = None,
@@ -28,6 +30,8 @@ def raster_clip(
     Args:
         raster_file (str): Local path to a raster file.
         shape_stem (str): Local path stem referencing a set of shape files.
+        raster_page (int): Index of the page to extract from the raster.
+        raster_band (int): Index of the band to extract from the raster.
         shape_attr (str): The shape attribute name to be used as the output dictionary key.
             This attribute is used as the shape name.
         attr_filter (str): String that the shape name must start with to be included.
@@ -47,7 +51,7 @@ def raster_clip(
     # Load data, init sparse matrix
     shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
     raster = TiffFile(raster_file)
-    sparse_data = init_sparse_matrix(raster.pages[0])
+    sparse_data = init_sparse_matrix(raster.pages[raster_page], raster_band)
 
     # Output dictionary
     data_dict = dict()
@@ -138,6 +142,11 @@ def raster_clip_weighted(
     raster_weight: Union[str, Path],
     raster_value: Union[str, Path],
     shape_stem: Union[str, Path],
+    raster_weight_page: int = 0,
+    raster_weight_band: int = 0,
+    raster_value_page: int = 0,
+    raster_value_band: int = 0,
+
     shape_attr: str = "DOTNAME",
     attr_filter: Union[str, None] = None,
     weight_summary_func: Callable = None,
@@ -150,6 +159,10 @@ def raster_clip_weighted(
         raster_weight (str): Local path to a raster file used for weights.
         raster_value (str): Local path to a raster file used for values.
         shape_stem (str): Local path stem referencing a set of shape files.
+        raster_weight_page (int): Index of the page to extract from the weights raster.
+        raster_weight_band (int): Index of the band to extract from the weights raster.
+        raster_value_page (int): Index of the page to extract from the value raster.
+        raster_value_band (int): Index of the band to extract from the value raster.
         shape_attr (str): The shape attribute name to be used as the output dictionary key.
             This attribute is used as the shape name.
         attr_filter (str): String that the shape name must start with to be included.
@@ -170,8 +183,8 @@ def raster_clip_weighted(
     raster_values = TiffFile(raster_value)
 
     # Init sparse matrices
-    sparse_pop = init_sparse_matrix(raster_weights.pages[0])
-    sparse_val = init_sparse_matrix(raster_values.pages[0])
+    sparse_weight = init_sparse_matrix(raster_weights.pages[raster_weight_page], raster_weight_band)
+    sparse_val = init_sparse_matrix(raster_values.pages[raster_value_page], raster_value_band)
 
     # Output dictionary
     data_dict = dict()
@@ -182,17 +195,17 @@ def raster_clip_weighted(
         shp.validate()
 
         # Subset matrices for clipping
-        pop_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_pop)
+        weight_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_weight)
         val_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_val, pad=1)
 
         # Track booleans (indicates if lat/long is interior)
-        data_bool = is_interior(shp, pop_clip)
+        data_bool = is_interior(shp, weight_clip)
 
         # Interpolate at population data
-        final_val = interpolate_at_weight_data(shp, pop_clip, val_clip, data_bool)
+        final_val = interpolate_at_weight_data(shp, weight_clip, val_clip, data_bool)
 
         # Pop values
-        values = pop_clip[data_bool, 2]
+        values = weight_clip[data_bool, 2]
 
         # Entry dictionary
         weight_summary_func = weight_summary_func or default_summary_func
@@ -248,10 +261,17 @@ def extract_xy_info_from_raster(
 
     # Extract data from raster
     tags = get_tiff_tags(raster)
-    point = tags["ModelTiepointTag"]
-    scale = tags["ModelPixelScaleTag"]
-    x0, y0 = point[3], point[4]
-    dx, dy = scale[0], -scale[1]
+    if "ModelTiepointTag" in tags:
+        point = tags["ModelTiepointTag"]
+        scale = tags["ModelPixelScaleTag"]
+        x0, y0 = point[3], point[4]
+        dx, dy = scale[0], -scale[1]
+    elif "ModelTransformationTag" in tags:
+        vector = tags["ModelTransformationTag"]
+        x0, y0 = vector[3], vector[7]
+        dx, dy = vector[0], vector[5]
+    else: 
+        raise ValueError('Invalid GeoTIFF tags.')
 
     # Make sure values are in range
     assert -180 < x0 < 180, "Tie point x coordinate (longitude) have invalid range."
@@ -267,6 +287,7 @@ def extract_xy_info_from_raster(
 
 def init_sparse_matrix(
     raster: TiffPage,
+    band: int,
 ) -> np.ndarray:
     """
     Initialize a matrix from a raster TiffPage object with values > 0
@@ -281,7 +302,14 @@ def init_sparse_matrix(
     x0, y0, dx, dy = extract_xy_info_from_raster(raster)
 
     dat_mat = raster.asarray()
-    xy_ints = np.argwhere(dat_mat > 0)
+    if (dat_mat.ndim == 2 and band > 0):
+        raise ValueError('Invalid raster band.')
+    if (dat_mat.ndim == 3):
+        if (dat_mat.shape[-1] <= band):
+            raise ValueError('Invalid raster band.')
+        dat_mat = dat_mat[:, :, band]
+
+    xy_ints = np.argwhere(dat_mat[:, :] > 0)
     sparse_data = np.zeros((xy_ints.shape[0], 3), dtype=float)
 
     # Construct sparse matrix of (long, lat, data)
