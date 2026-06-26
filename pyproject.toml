@@ -15,12 +15,12 @@ authors = [
 ]
 keywords = ["modeling", "IDM"]
 dependencies = [
-    "matplotlib~=3.9",
-    "pyshp~=3.0",
-    "pyproj~=3.6",
-    "scikit-learn~=1.6",
-    "shapely~=2.0",
-    "tifffile[all]~=2025.0",
+    "matplotlib~=3.11",
+    "pyshp~=3.1",
+    "pyproj~=3.7",
+    "scikit-learn~=1.9",
+    "shapely~=2.1",
+    "tifffile[all]~=2026.0",
 ]
 license = "MIT"
 classifiers = [
