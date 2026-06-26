@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from pathlib import Path
 from tifffile import TiffFile, TiffWriter
 
 from rastertoolkit.raster import get_tiff_tags, init_sparse_matrix
@@ -8,8 +7,8 @@ from rastertoolkit.raster import get_tiff_tags, init_sparse_matrix
 # GeoTIFF tags for a 10x10 grid: origin lon=10, lat=5, resolution=0.1 degrees.
 # GDAL_NODATA (42113) is set to -1 so extract_xy_info_from_raster's nodata check passes.
 _TIEPOINT = (33922, 12, 6, [0.0, 0.0, 0.0, 10.0, 5.0, 0.0], False)
-_SCALE    = (33550, 12, 3, [0.1, 0.1, 0.0], False)
-_NODATA   = (42113,  2, 3, b"-1", False)
+_SCALE = (33550, 12, 3, [0.1, 0.1, 0.0], False)
+_NODATA = (42113, 2, 3, b"-1", False)
 _GEO_TAGS = [_TIEPOINT, _SCALE, _NODATA]
 
 
@@ -39,7 +38,6 @@ def geotiff_pages_bands(tmp_path):
         tiff.write(page1, extratags=_GEO_TAGS)
         tiff.write(page2, photometric="rgb", extratags=_GEO_TAGS)
     return fp
-
 
 
 # ---- get_tiff_tags ----
@@ -142,7 +140,7 @@ def geotiff_transformation_tag(tmp_path):
                  0.0, 0.0, 1.0, 0.0,
                  0.0, 0.0, 0.0, 1.0]
     transform_tag = (34264, 12, 16, transform, False)
-    nodata_tag    = (42113,  2,  3, b"-1", False)
+    nodata_tag = (42113, 2, 3, b"-1", False)
 
     data = np.zeros((10, 10), dtype=float)
     data[2, 3] = 100.0
@@ -167,4 +165,4 @@ def test_init_sparse_matrix_with_transformation_tag(geotiff_transformation_tag):
     matrix = init_sparse_matrix(raster.pages[0], 0)
     assert set(matrix[:, 2]) == {100.0, 200.0}
     assert all(-180 < lon < 180 for lon in matrix[:, 0])
-    assert all(-85  < lat < 85  for lat in matrix[:, 1])
+    assert all(-85 < lat < 85 for lat in matrix[:, 1])

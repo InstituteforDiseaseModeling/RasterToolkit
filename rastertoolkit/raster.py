@@ -270,7 +270,7 @@ def extract_xy_info_from_raster(
         vector = tags["ModelTransformationTag"]
         x0, y0 = vector[3], vector[7]
         dx, dy = vector[0], vector[5]
-    else: 
+    else:
         raise ValueError('Invalid GeoTIFF tags.')
 
     # Make sure values are in range
