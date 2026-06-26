@@ -26,37 +26,12 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
 # PyBuilder
 .pybuilder/
 target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pdm
-.pdm.toml
-.pdm-python
-.pdm-build/
-__pypackages__/
 
 # Environments
 .env
@@ -67,34 +42,8 @@ ENV/
 env.bak/
 venv.bak/
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
 # PyCharm
 .idea/
-
-# User-specific files
-*.csv
-*.dbf
-*.id
-*.log
-*.png
-*.shp
-*.shx
-*.svg
-*.tif
-*.zip
 
 # Documentation
 !docs/**

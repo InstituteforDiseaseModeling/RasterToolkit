@@ -27,7 +27,12 @@ class ShapeView:
 
     default_shape_attr: str = "DOTNAME"
 
-    def __init__(self, shape: Shape, record: ShapeRecord, name_attr: str = None):
+    def __init__(
+        self,
+        shape: Shape,
+        record: ShapeRecord,
+        name_attr: str = None
+    ):
         self.name_attr: str = name_attr or self.default_shape_attr
         self.shape: Shape = shape
         self._points: np.ndarray = None
@@ -83,13 +88,17 @@ class ShapeView:
         return polygon_area_km2(self.as_polygon())
 
     @staticmethod
-    def _as_multi_polygon(shape: Shape):
+    def _as_multi_polygon(
+        shape: Shape
+    ):
         return MultiPolygon([shape]) if isinstance(shape, Polygon) else shape
 
     @classmethod
-    def read_shapes(cls,
-                    shape_stem: Union[str, Path, Reader]
-                    ) -> tuple[Reader, Shapes[Shape], list[ShapeRecord]]:
+    def read_shapes(
+        cls,
+        shape_stem: Union[str, Path, Reader],
+    ) -> tuple[Reader, Shapes[Shape], list[ShapeRecord]]:
+
         reader: Reader = shape_stem if isinstance(shape_stem, Reader) else Reader(str(shape_stem))
         shapes: Shapes[Shape] = reader.shapes()
         records: list[ShapeRecord] = reader.records()
@@ -97,17 +106,21 @@ class ShapeView:
         return reader, shapes, records
 
     @classmethod
-    def from_file(cls,
-                  shape_stem: Union[str, Path, Reader],
-                  shape_attr: Union[str, None] = None,
-                  attr_filter: Union[str, None] = None,
-                  ) -> list[ShapeView]:
+    def from_file(
+        cls,
+        shape_stem: Union[str, Path, Reader],
+        shape_attr: Union[str, None] = None,
+        attr_filter: Union[str, None] = None,
+    ) -> list[ShapeView]:
         """
         Loads a shape into a shape view class.
 
         Args:
             shape_stem (str): Local path stem referencing a set of shape files.
-            shape_attr (str): The shape attribute name to be used as the output dictionary key.
+            shape_attr (str): The shape attribute to be used as the output dictionary key.
+                This attribute is used as the shape name.
+            attr_filter (str): String that the shape name must start with to be included.
+                Excluded shapes are ignored.
 
         Returns:
             list: A list of `ShapeView` objects containing parsed shape information.
@@ -162,7 +175,8 @@ class ShapeView:
 
 
 def shapes_to_polygons_dict(
-    shape_stem: Union[str, Path, Reader], all_multi: bool = True
+    shape_stem: Union[str, Path, Reader],
+    all_multi: bool = True,
 ) -> list[MultiPolygon]:
     """
     Converts shapes from a shapefile into a dictionary of MultiPolygons.
@@ -188,7 +202,8 @@ def shapes_to_polygons_dict(
 
 
 def shapes_to_polygons(
-    shape_stem: Union[str, Path, Reader], all_multi: bool = True
+    shape_stem: Union[str, Path, Reader],
+    all_multi: bool = True,
 ) -> list[MultiPolygon]:
     """
     Converts shapes from a shapefile into a list of MultiPolygons.
@@ -205,7 +220,8 @@ def shapes_to_polygons(
 
 
 def polygon_contains(
-    polygon: Union[Polygon, MultiPolygon], points: Union[np.ndarray, list[Point]]
+    polygon: Union[Polygon, MultiPolygon],
+    points: Union[np.ndarray, list[Point]],
 ) -> np.ndarray:
     """
     Determines which points are inside a polygon.
@@ -228,7 +244,9 @@ def polygon_contains(
     return pts_in_array
 
 
-def polygon_area_km2(polygon: Union[Polygon, MultiPolygon]) -> np.float64:
+def polygon_area_km2(
+    polygon: Union[Polygon, MultiPolygon],
+) -> np.float64:
     """
     Calculates the area of a polygon in square kilometers.
 
@@ -244,7 +262,9 @@ def polygon_area_km2(polygon: Union[Polygon, MultiPolygon]) -> np.float64:
     return area_km2
 
 
-def polygon_to_coords(geom: Union[Polygon, LinearRing]) -> list[tuple[float, float]]:
+def polygon_to_coords(
+    geom: Union[Polygon, LinearRing],
+) -> list[tuple[float, float]]:
     """
     Converts a polygon or linear ring to a list of coordinates.
 
@@ -267,7 +287,9 @@ def polygon_to_coords(geom: Union[Polygon, LinearRing]) -> list[tuple[float, flo
     return coords_list
 
 
-def polygons_to_parts(polygons: list[Polygon]) -> list[list[tuple[float, float]]]:
+def polygons_to_parts(
+    polygons: list[Polygon],
+) -> list[list[tuple[float, float]]]:
     """
     Converts a list of polygons to a list of parts.
 
@@ -284,7 +306,9 @@ def polygons_to_parts(polygons: list[Polygon]) -> list[list[tuple[float, float]]
     return poly_as_list
 
 
-def area_sphere(shape_points) -> float:
+def area_sphere(
+    shape_points,
+) -> float:
     """
     Calculates the area of a polygon on a sphere.
 
@@ -310,7 +334,9 @@ def area_sphere(shape_points) -> float:
     return tarea
 
 
-def centroid_area(shape_points) -> tuple[float, float, float]:
+def centroid_area(
+    shape_points,
+) -> tuple[float, float, float]:
     """
     Calculates the area centroid of a polygon based on Cartesian coordinates.
 
@@ -335,8 +361,16 @@ def centroid_area(shape_points) -> tuple[float, float, float]:
     return (Cx, Cy, A)
 
 
-def long_mult(lat):  # latitude in degrees
-    """Returns the multiplier for longitude based on latitude."""
+def long_mult(
+    lat,
+) -> float:
+    """
+    Returns the multiplier for longitude based on latitude.
+
+    Args:
+
+    Returns:
+    """
     return 1.0 / np.cos(lat * np.pi / 180.0)
 
 

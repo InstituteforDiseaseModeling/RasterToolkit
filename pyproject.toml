@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rastertoolkit"
-version = "0.4.9"
+version = "0.5.0"
 description = "Raster and shape tools"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -15,11 +15,11 @@ authors = [
 ]
 keywords = ["modeling", "IDM"]
 dependencies = [
-    "matplotlib~=3.9",
-    "pyshp~=3.0",
-    "pyproj~=3.6",
-    "scikit-learn~=1.6",
-    "shapely~=2.0",
+    "matplotlib~=3.10",
+    "pyshp~=3.1",
+    "pyproj~=3.7",
+    "scikit-learn~=1.7",
+    "shapely~=2.1",
     "tifffile[all]~=2025.0",
 ]
 license = "MIT"
@@ -58,7 +58,7 @@ Repository = "https://github.com/InstituteforDiseaseModeling/RasterToolkit"
 Issues = "https://github.com/InstituteforDiseaseModeling/RasterToolkit/issues"
 
 [tool.bumpversion]
-current_version = "0.4.9"
+current_version = "0.5.0"
 commit = true
 
 [[tool.bumpversion.files]]

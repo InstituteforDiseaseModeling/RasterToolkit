@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any, Union
 
 
-def read_json(json_path: Union[str, Path]) -> dict[str, Any]:
+def read_json(
+    json_path: Union[str, Path],
+) -> dict[str, Any]:
     """
     Reads a JSON file.
 
@@ -29,7 +31,10 @@ def read_json(json_path: Union[str, Path]) -> dict[str, Any]:
 
 
 def save_json(
-    data: dict, json_path: Union[str, Path], sort_keys=False, indent=4
+    data: dict,
+    json_path: Union[str, Path],
+    sort_keys=False,
+    indent=4,
 ) -> None:
     """
     Saves a JSON object to a file.
@@ -48,7 +53,9 @@ def save_json(
         json.dump(data, fp, sort_keys=sort_keys, indent=indent)
 
 
-def extract_archive(file_path: Union[str, Path]) -> list[str]:
+def extract_archive(
+    file_path: Union[str, Path],
+) -> list[str]:
     """
     Extracts a ZIP archive into a directory with the same name as the file's base name.
 
@@ -68,7 +75,9 @@ def extract_archive(file_path: Union[str, Path]) -> list[str]:
     return extracted_files
 
 
-def sha256(file_path) -> str:
+def sha256(
+    file_path,
+) -> str:
     """
     Calculates the SHA-256 hash of a file.
 
