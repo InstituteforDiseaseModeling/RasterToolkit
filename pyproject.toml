@@ -20,7 +20,7 @@ dependencies = [
     "pyproj~=3.7",
     "scikit-learn~=1.7",
     "shapely~=2.1",
-    "tifffile[all]~=2026.0",
+    "tifffile[all]~=2025.0",
 ]
 license = "MIT"
 classifiers = [
