@@ -491,9 +491,7 @@ def shape_subdivide(
             # Debug logging: shapefile index, target number of subdivisions
             bounds_str = str([round(v, 2) for v in multi.bounds])
             if verbose:
-                print(
-                    f"MultiPolygon: {k1:<5} {bounds_str:<32} Number of boxes: {num_box}"
-                )
+                print(f"MultiPolygon: {k1:<5} {bounds_str:<32} Number of boxes: {num_box}")
         else:
             warnings.warn(f"Unable to fix the MultiPolygon {k1}!")
 
