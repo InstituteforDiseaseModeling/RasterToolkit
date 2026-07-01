@@ -5,6 +5,7 @@ Functions for spatial processing of shape files.
 from __future__ import annotations
 
 import itertools
+import warnings
 import matplotlib.path as plth
 import matplotlib.pyplot as plt
 import numpy as np
@@ -475,7 +476,7 @@ def shape_subdivide(
                     f"MultiPolygon: {k1:<5} {bounds_str:<32} Number of boxes: {num_box}"
                 )
         else:
-            Warning(f"Unable to fix the MultiPolygon {k1}!")
+            warnings.warn(f"Unable to fix the MultiPolygon {k1}!")
 
         # Start with a rectangular mesh, then (roughly) correct longitude (x values);
         # Assume spacing on latitude (y values) is constant; x value spacing needs to
