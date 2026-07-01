@@ -10,7 +10,9 @@ from shapefile import Reader, Writer
 
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
-    """Ensure the correct working directory is set."""
+    """
+    Ensure the correct working directory is set.
+    """
     monkeypatch.chdir(request.fspath.dirname)
 
 
@@ -25,13 +27,17 @@ def shape_file() -> Path:
 
 @pytest.fixture()
 def one_shape(shape_file) -> ShapeView:
-    """Helper test property providing a sample shape view object."""
+    """
+    Helper test property providing a sample shape view object.
+    """
     shapes_dict = {s.name: s for s in ShapeView.from_file(shape_file)}
     return shapes_dict[pytest.expected_name]
 
 
 def test_shape_load_from_file(shape_file):
-    """Testing loading of a shape file and creating a list of shape view objects."""
+    """
+    Testing loading of a shape file and creating a list of shape view objects.
+    """
     shapes = ShapeView.from_file(shape_file)
     assert len(shapes) > 0
     for shp in shapes:
@@ -39,7 +45,9 @@ def test_shape_load_from_file(shape_file):
 
 
 def test_shape_load_from_file_filter(shape_file):
-    """Testing loading of a single shape from a file of many shapes."""
+    """
+    Testing loading of a single shape from a file of many shapes.
+    """
     shapes = ShapeView.from_file(shape_file, attr_filter=pytest.expected_name)
     assert len(shapes) == 1
     for shp in shapes:
@@ -47,7 +55,9 @@ def test_shape_load_from_file_filter(shape_file):
 
 
 def test_shape_properties(one_shape):
-    """Testing shape view object properties."""
+    """
+    Testing shape view object properties.
+    """
     shp = one_shape
     assert isinstance(shp, ShapeView)
 
@@ -77,7 +87,9 @@ def test_shape_properties(one_shape):
 
 
 def test_shape_area_sphere(one_shape):
-    """Testing the function for calculating shape sphere area."""
+    """
+    Testing the function for calculating shape sphere area.
+    """
     parts = one_shape.shape.parts
     points: np.ndarray = one_shape.points[parts[0]:parts[1]]
     actual_area = area_sphere(points)
@@ -142,7 +154,8 @@ def run_shape_sub_test(one_shape, shape_file, tmp_path=None, target_area=None, p
 
 
 def test_shape_sub_extra_field(shape_file, tmp_path):
-    """Regression test: extra fields beyond DOTNAME must survive subdivision.
+    """
+    Regression test: extra fields beyond DOTNAME must survive subdivision.
 
     pyshp 3.0 returns Field namedtuples; wrapping them with tuple() strips
     the .size attribute that pyshp needs when writing the DBF header.

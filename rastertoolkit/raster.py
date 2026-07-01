@@ -44,7 +44,8 @@ def raster_clip(
     Returns:
         dict: A dictionary with dot names as keys and calculated aggregations as values.
     """
-    assert Path(raster_file).is_file(), "Raster file not found."
+    if not Path(raster_file).is_file():
+        raise FileNotFoundError(f"Raster file not found: {raster_file}")
 
     print("Loading data...")
 
@@ -174,8 +175,10 @@ def raster_clip_weighted(
     Returns:
         dict: A dictionary with dot names as keys and calculated aggregations as values.
     """
-    assert Path(raster_weight).is_file(), "Population raster file not found."
-    assert Path(raster_value).is_file(), "Values raster file not found."
+    if not Path(raster_weight).is_file():
+        raise FileNotFoundError(f"Population raster file not found: {raster_weight}")
+    if not Path(raster_value).is_file():
+        raise FileNotFoundError(f"Values raster file not found: {raster_value}")
 
     # Load data shape and rasters
     shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
@@ -274,13 +277,17 @@ def extract_xy_info_from_raster(
         raise ValueError('Invalid GeoTIFF tags.')
 
     # Make sure values are in range
-    assert -180 < x0 < 180, "Tie point x coordinate (longitude) have invalid range."
-    assert -85 < y0 < 85, "Tie point y coordinate (latitude) have invalid range."
-    assert 0 < dx < 1, "Pixel dx scale has invalid range."
-    assert -1 < dy < 0, "Pixel dy scale has invalid range."
+    if not (-180 < x0 < 180):
+        raise ValueError(f"Tie point x coordinate (longitude) has invalid range: {x0}.")
+    if not (-85 < y0 < 85):
+        raise ValueError(f"Tie point y coordinate (latitude) has invalid range: {y0}.")
+    if not (0 < dx < 1):
+        raise ValueError(f"Pixel dx scale has invalid range: {dx}.")
+    if not (-1 < dy < 0):
+        raise ValueError(f"Pixel dy scale has invalid range: {dy}.")
     nodata = getattr(raster, "nodata", None)
-    if nodata is not None:
-        assert nodata < 0, "Invalid no-data attribute; must be negative."
+    if nodata is not None and nodata >= 0:
+        raise ValueError(f"Invalid no-data attribute; must be negative: {nodata}.")
 
     return x0, y0, dx, dy
 
@@ -366,7 +373,10 @@ def summary_entry(
         Union[dict, float, int]: The summarized entry for the shape.
     """
     if include_latlon:
-        assert isinstance(entry, dict) and len(entry) > 0, "Invalid entry."
+        if not isinstance(entry, dict) or len(entry) == 0:
+            raise TypeError(
+                f"Invalid entry; expected a non-empty dict when include_latlon is True, got {entry!r}."
+            )
         lon = shape.center[0] if shape else np.nan
         lat = shape.center[1] if shape else np.nan
         final_entry = {"lat": lat, "lon": lon}

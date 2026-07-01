@@ -23,7 +23,8 @@ def read_json(
     Returns:
         dict: A dictionary representing the JSON structure.
     """
-    assert Path(json_path).exists(), f"JSON file {json_path} not found."
+    if not Path(json_path).exists():
+        raise FileNotFoundError(f"JSON file {json_path} not found.")
     with open(json_path) as fp:
         data: dict = json.load(fp)
 

@@ -52,6 +52,8 @@ plugins:
       autoapi_add_nav_entry: false
   - mkdocstrings:
   - mkdocs-jupyter:
+      execute: true
+      allow_errors: false
 
 markdown_extensions:
   - def_list:
