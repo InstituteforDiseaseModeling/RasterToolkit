@@ -76,7 +76,6 @@ def raster_clip(
             quiet=quiet,
         )
 
-    data_dict = {}
     for k1, ft in fts.items():
         data_dict.update(ft.result())
 
@@ -115,7 +114,7 @@ def raster_clip_single(
     # Null shape; error in shapefile
     shp.validate()
 
-    # Subset population data matrix for clipping
+    # Subset matrix for clipping
     data_clip = subset_matrix_for_clipping(shp, sparse_data)
 
     if data_clip.shape[0] == 0:
@@ -147,7 +146,6 @@ def raster_clip_weighted(
     raster_weight_band: int = 0,
     raster_value_page: int = 0,
     raster_value_band: int = 0,
-
     shape_attr: str = "DOTNAME",
     attr_filter: Union[str, None] = None,
     weight_summary_func: Callable = None,
@@ -180,6 +178,8 @@ def raster_clip_weighted(
     if not Path(raster_value).is_file():
         raise FileNotFoundError(f"Values raster file not found: {raster_value}")
 
+    print("Loading data...")
+
     # Load data shape and rasters
     shapes = ShapeView.from_file(shape_stem, shape_attr, attr_filter)
     raster_weights = TiffFile(raster_weight)
@@ -190,33 +190,84 @@ def raster_clip_weighted(
     sparse_val = init_sparse_matrix(raster_values.pages[raster_value_page], raster_value_band)
 
     # Output dictionary
-    data_dict = dict()
+    data_dict = {}
+    shape_len = len(shapes)
+    print("Clipping:")
+
+    fts = {}
+    # Init the futures executor
+    executor = ThreadPoolExecutor(max_workers=(os.cpu_count() - 1))
 
     # Iterate over shapes in shapefile
     for k1, shp in enumerate(shapes):
-        # Null shape; error in shapefile
-        shp.validate()
+        fts[k1] = executor.submit(
+            raster_clip_weighted_single,
+            shp=shp,
+            sparse_weight=sparse_weight,
+            sparse_val=sparse_val,
+            k1=k1,
+            shape_len=shape_len,
+            weight_summary_func=weight_summary_func,
+            include_latlon=include_latlon,
+        )
 
-        # Subset matrices for clipping
-        weight_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_weight)
-        val_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_val, pad=1)
+    for k1, ft in fts.items():
+        data_dict.update(ft.result())
 
-        # Track booleans (indicates if lat/long is interior)
-        data_bool = is_interior(shp, weight_clip)
+    executor.shutdown(wait=True)
 
-        # Interpolate at population data
-        final_val = interpolate_at_weight_data(shp, weight_clip, val_clip, data_bool)
+    return data_dict
 
-        # Pop values
-        values = weight_clip[data_bool, 2]
 
-        # Entry dictionary
-        weight_summary_func = weight_summary_func or default_summary_func
-        entry = {"pop": weight_summary_func(values), "val": final_val}
+def raster_clip_weighted_single(
+    shp: ShapeView,
+    sparse_weight: np.ndarray,
+    sparse_val: np.ndarray,
+    k1: int,
+    shape_len: int,
+    weight_summary_func: Callable,
+    include_latlon: bool,
+) -> dict[str, Union[float, int]]:
+    """
+    Extracts weighted data from a raster based on a single shape.
 
-        # Set entry and print status
-        data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
-        print_status(shp, data_dict, k1, len(shapes))
+    Args:
+        shp (ShapeView): Shape object.
+        sparse_weight (np.ndarray): Sparse matrix of weight (population) raster data.
+        sparse_val (np.ndarray): Sparse matrix of value raster data.
+        k1 (int): Index of the shape.
+        shape_len (int): Total number of shapes.
+        weight_summary_func (Callable): Aggregation function to be used for summarizing
+            clipped data for each shape.
+        include_latlon (bool): Flag to include lat/lon in the dictionary entry.
+
+    Returns:
+        dict: A dictionary with dot names as keys and calculated aggregations as values.
+    """
+    data_dict = {}
+    # Null shape; error in shapefile
+    shp.validate()
+
+    # Subset matrices for clipping
+    weight_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_weight)
+    val_clip = subset_matrix_for_clipping(shape=shp, sparse_data=sparse_val, pad=1)
+
+    # Track booleans (indicates if lat/long is interior)
+    data_bool = is_interior(shp, weight_clip)
+
+    # Interpolate at population data
+    final_val = interpolate_at_weight_data(shp, weight_clip, val_clip, data_bool)
+
+    # Pop values
+    values = weight_clip[data_bool, 2]
+
+    # Entry dictionary
+    weight_summary_func = weight_summary_func or default_summary_func
+    entry = {"pop": weight_summary_func(values), "val": final_val}
+
+    # Set entry and print status
+    data_dict[shp.name] = summary_entry(shp, entry, include_latlon)
+    print_status(shp, data_dict, k1, shape_len)
 
     return data_dict
 

@@ -46,7 +46,7 @@ class ShapeView:
 
     def __str__(self):
         """
-        String representation used to print or debug WeatherSet objects.
+        String representation used to print or debug ShapeView objects.
         """
         return f"{self.name} (parts: {str(len(self.areas))})"
 
@@ -116,6 +116,13 @@ class ShapeView:
         cls,
         shape_stem: Union[str, Path, Reader],
     ) -> tuple[Reader, Shapes[Shape], list[ShapeRecord]]:
+        """
+        Loads a shapefile into a Reader opbect and gets the shapes and records
+
+        Args:
+
+        Returns:
+        """
 
         reader: Reader = shape_stem if isinstance(shape_stem, Reader) else Reader(str(shape_stem))
         shapes: Shapes[Shape] = reader.shapes()
@@ -195,7 +202,7 @@ class ShapeView:
 def shapes_to_polygons_dict(
     shape_stem: Union[str, Path, Reader],
     all_multi: bool = True,
-) -> list[MultiPolygon]:
+) -> dict:
     """
     Converts shapes from a shapefile into a dictionary of MultiPolygons.
 
@@ -204,10 +211,8 @@ def shapes_to_polygons_dict(
         all_multi (bool, optional): If True, ensures all geometries are MultiPolygons. Defaults to True.
 
     Returns:
-        list[MultiPolygon]: A dictionary where keys are shape identifiers and values are MultiPolygon objects.
+        dict: A dictionary where keys are shape identifiers (names) and values are MultiPolygon objects.
     """
-    # Example loading shape files as multi polygons
-    # https://gis.stackexchange.com/questions/70591/creating-shapely-multipolygons-from-shapefile-multipolygons
     _, shapes, records = ShapeView.read_shapes(shape_stem)
     polygons = {r.DOTNAME: shapely.geometry.shape(s) for s, r in zip(shapes, records)}
     if all_multi:
