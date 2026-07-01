@@ -74,9 +74,12 @@ class ShapeView:
         return len(self.paths)
 
     def validate(self) -> None:
-        assert self.points.shape[0] != 0 and len(self.paths) > 0, "No parts in a shape."
-        assert len(self.paths) == len(self.areas), "Inconsistent number of parts in a shape."
-        assert self.name is not None and self.name != "", "Shape has no name."
+        if self.points.shape[0] == 0 or len(self.paths) == 0:
+            raise ValueError("No parts in a shape.")
+        if len(self.paths) != len(self.areas):
+            raise ValueError("Inconsistent number of parts in a shape.")
+        if self.name is None or self.name == "":
+            raise ValueError("Shape has no name.")
 
     def as_polygon(self) -> Polygon:
         return shapely.geometry.shape(self.shape)
@@ -419,11 +422,12 @@ def shape_subdivide(
     points_per_box = points_per_box or 250
     random_seed = random_seed or 4
 
-    assert box_target_area_km2 > 0, (
-        "Argument 'box_target_area_km2' must be a positive integer."
-    )
-    assert points_per_box > 0, "Argument 'points_per_box' must be a positive integer."
-    assert random_seed > 0, "Argument 'random_seed' must be a positive integer."
+    if box_target_area_km2 <= 0:
+        raise ValueError("Argument 'box_target_area_km2' must be a positive integer.")
+    if points_per_box <= 0:
+        raise ValueError("Argument 'points_per_box' must be a positive integer.")
+    if random_seed <= 0:
+        raise ValueError("Argument 'random_seed' must be a positive integer.")
 
     # Read shapes
     sf1 = Reader(shape_stem)
@@ -449,7 +453,8 @@ def shape_subdivide(
     else:
         sf1new2 = None
 
-    assert (shape_attr in [f[0] for f in sf1new.fields]), f"Shape doesn't contain {shape_attr} field."
+    if shape_attr not in [f[0] for f in sf1new.fields]:
+        raise ValueError(f"Shape doesn't contain {shape_attr} field.")
 
     # Second step is to create an underlying mesh of points. If the mesh is
     # equidistant, then the subdivided shapes will be uniform area. Alternatively,
@@ -510,7 +515,8 @@ def shape_subdivide(
         # Don't actually want the cluster centers, goal is the outlines. Going from centers
         # to outlines uses Voronoi tessellation. Add a box of external points to avoid mucking
         # up the edges. (+/- 200 was arbitrary value greater than any possible lat/long)
-        assert max(abs(sub_node.reshape(-1))) < 200, "Coordinates must be < 200."
+        if max(abs(sub_node.reshape(-1))) >= 200:
+            raise ValueError("Coordinates must be < 200.")
         EXT_PTS = np.array([[-200, -200], [200, -200], [-200, 200], [200, 200]])
         vor_node = np.append(sub_node, EXT_PTS, axis=0)
         vor_obj = Voronoi(vor_node)
@@ -530,9 +536,7 @@ def shape_subdivide(
         # If there's not 1 Voronoi region outline for each k-means cluster center
         # at this point, something has gone very wrong. Time to bail.
         if len(vor_list) != len(sub_node):
-            raise ValueError(
-                "Failed to create a Voronoi region outline for each k-means cluster center."
-            )
+            raise ValueError("Failed to create a Voronoi region outline for each k-means cluster center.")
 
         # The Voronoi region outlines may extend beyond the shape outline and/or
         # overlap with negative spaces, so intersect each Voronoi region with the
@@ -548,12 +552,9 @@ def shape_subdivide(
             dotname_new = f"{dotname}:A{k2:04d}"
             new_recs[shape_attr] = dotname_new
 
-            assert poly_reg.geom_type in ["Polygon", "MultiPolygon"], (
-                "Unsupported geometry type"
-            )
-            poly_list = (
-                poly_reg.geoms if poly_reg.geom_type == "MultiPolygon" else [poly_reg]
-            )
+            if poly_reg.geom_type not in ["Polygon", "MultiPolygon"]:
+                raise ValueError(f"Unsupported geometry type: {poly_reg.geom_type}")
+            poly_list = (poly_reg.geoms if poly_reg.geom_type == "MultiPolygon" else [poly_reg])
             poly_as_list = polygons_to_parts(poly_list)
 
             # Add the new shape to the shapefile; splat the record
@@ -563,7 +564,6 @@ def shape_subdivide(
         if output_centers and new_recs is not None:
             for i, p in enumerate([Point(xy) for xy in sub_node]):
                 sf1new2.point(p.x, p.y)
-                assert output_centers
                 sf1new2.record(*new_recs)
 
     sf1new.close()
