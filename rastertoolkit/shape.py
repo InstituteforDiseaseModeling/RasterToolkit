@@ -24,7 +24,9 @@ from typing import Union
 
 
 class ShapeView:
-    """Class extracting and encapsulating shape data used for raster processing."""
+    """
+    Class extracting and encapsulating shape data used for raster processing.
+    """
 
     default_shape_attr: str = "DOTNAME"
 
@@ -43,34 +45,46 @@ class ShapeView:
         self.areas: list[float] = []
 
     def __str__(self):
-        """String representation used to print or debug WeatherSet objects."""
+        """
+        String representation used to print or debug WeatherSet objects.
+        """
         return f"{self.name} (parts: {str(len(self.areas))})"
 
     @property
     def name(self):
-        """Shape name, read using name attribute."""
+        """
+        Shape name, read using name attribute.
+        """
         return self.record[self.name_attr]
 
     @property
     def points(self):
-        """The list of point defining shape geometry."""
+        """
+        The list of point defining shape geometry.
+        """
         if self._points is None:
             self._points = np.array(self.shape.points)
         return self._points
 
     @property
     def xy_max(self):
-        """Max x, y coordinates, based on point coordinates."""
+        """
+        Max x, y coordinates, based on point coordinates.
+        """
         return np.max(self.points, axis=0)
 
     @property
     def xy_min(self):
-        """Min x, y coordinates, based on point coordinates."""
+        """
+        Min x, y coordinates, based on point coordinates.
+        """
         return np.min(self.points, axis=0)
 
     @property
     def parts_count(self):
-        """Number of shape parts."""
+        """
+        Number of shape parts.
+        """
         return len(self.paths)
 
     def validate(self) -> None:
