@@ -120,7 +120,7 @@ class ShapeView:
         reader: Reader = shape_stem if isinstance(shape_stem, Reader) else Reader(str(shape_stem))
         shapes: Shapes[Shape] = reader.shapes()
         records: list[ShapeRecord] = reader.records()
-        print(reader.fields)
+
         return reader, shapes, records
 
     @classmethod
