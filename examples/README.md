@@ -25,8 +25,6 @@ The output in this case looks like this:
 
 ![extracted pop 2](../docs/assets/extracted_pop_2.png) 
 
-To generate EMOD Demographics use emdo_api to generate EMOD demographics from extracted pop data.
-
 
 ## Creating Subdivision Layer
 This example shows how to use the `shape_subdivide` function to create a subdivision layer.
@@ -37,7 +35,7 @@ To run this example execute:
 python worldpop_clipping.py
 ```
 
-After example is completed the `results` dir will contain the outputs:
+After example is completed the directory will contain the outputs:
 
 ![results](../docs/assets/subdivision_results_dir.png)
 
@@ -58,4 +56,4 @@ For example, this QGIS visualization show subdivision shapes for two values of `
 <td><img src="../docs/assets/subdivision_400km2.png" width="400"></td>
 </tr></table>
 
-If you don't have QGIS installed, the example plots generated subdivision layers (see `results/COD_LEV02_ZONES_100km.png` image).
+If you don't have QGIS installed, the example plots generated subdivision layers (see `COD_LEV02_ZONES_100km.png` image).

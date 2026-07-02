@@ -1,10 +1,10 @@
-import numpy as np
+import os
 import pytest
 import re
 
-from rastertoolkit.shape import ShapeView, area_sphere, centroid_area, shape_subdivide
+import numpy as np
 
-from pathlib import Path
+from rastertoolkit.shape import ShapeView, area_sphere, centroid_area, shape_subdivide
 from shapefile import Reader, Writer
 
 
@@ -21,8 +21,8 @@ def setup_module():
 
 
 @pytest.fixture()
-def shape_file() -> Path:
-    return Path("data/cod_lev02_zones_test/cod_lev02_zones_test")
+def shape_file() -> str:
+    return os.path.join("data", "cod_lev02_zones_test", "cod_lev02_zones_test")
 
 
 @pytest.fixture()
@@ -108,15 +108,12 @@ def test_shape_centroid_area(one_shape):
     assert round(abs(a1), 4) == 0.0603
 
 
-# Subdivision Tests
-
-
 def test_shape_sub_default(one_shape, shape_file):
     run_shape_sub_test(one_shape, shape_file)
 
 
 def test_shape_sub_shp(one_shape, shape_file):
-    run_shape_sub_test(one_shape, shape_file.with_suffix(".shp"))
+    run_shape_sub_test(one_shape, shape_file + ".shp")
 
 
 def test_shape_sub_temp_dir(one_shape, shape_file, tmp_path):

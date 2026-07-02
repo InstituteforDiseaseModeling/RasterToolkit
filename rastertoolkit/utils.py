@@ -3,8 +3,10 @@ Helper functions used by other package modules.
 
 """
 
+import unicodedata
 import hashlib
 import json
+import warnings
 import zipfile
 
 from pathlib import Path
@@ -23,6 +25,8 @@ def read_json(
     Returns:
         dict: A dictionary representing the JSON structure.
     """
+    warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
+
     if not Path(json_path).exists():
         raise FileNotFoundError(f"JSON file {json_path} not found.")
     with open(json_path) as fp:
@@ -49,6 +53,8 @@ def save_json(
     Returns:
         None
     """
+    warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
+
     Path(json_path).parent.mkdir(exist_ok=True)
     with open(json_path, "w") as fp:
         json.dump(data, fp, sort_keys=sort_keys, indent=indent)
@@ -66,6 +72,8 @@ def extract_archive(
     Returns:
         list: A list of extracted file paths.
     """
+    warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
+
     dst_dir = file_path.parent.joinpath(file_path.stem)
     Path(dst_dir).mkdir(exist_ok=True, parents=True)
     with zipfile.ZipFile(file_path, "r") as zip_ref:
@@ -91,6 +99,8 @@ def sha256(
     Returns:
         str: A string representing the SHA-256 hash hex digest.
     """
+    warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
+
     if not Path(file_path).is_file():
         return ""
 
@@ -100,3 +110,50 @@ def sha256(
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
+
+
+def _rep_rule(
+    in_str: str,
+) -> str:
+    """
+    Helper function to normalize latin alphabet strings for easier alignment.
+
+    Args:
+        in_str (str): Input string to be simplified.
+
+    Returns:
+        str: Simplified string.
+
+    """
+
+    # Upper case
+    wrk_val = in_str.upper()
+
+    # Diacritics
+    wrk_val = unicodedata.normalize('NFKD', wrk_val)
+
+    # Alias characters to underscore
+    wrk_val = wrk_val.replace(' ', '_')
+    wrk_val = wrk_val.replace('-', '_')
+    wrk_val = wrk_val.replace('/', '_')
+    wrk_val = wrk_val.replace(',', '_')
+    wrk_val = wrk_val.replace('\\', '_')
+    wrk_val = wrk_val.replace('(', '_')
+    wrk_val = wrk_val.replace(')', '_')
+
+    # Strip characters
+    wrk_val = wrk_val.replace('\'', '')
+    wrk_val = wrk_val.replace('"', '')
+    wrk_val = wrk_val.replace('’', '')
+    wrk_val = wrk_val.replace('.', '')
+    wrk_val = wrk_val.replace('\x00', '')
+
+    # Remove non-ASCII characters
+    wrk_val = wrk_val.encode('ascii', 'ignore').decode('utf-8')
+
+    # Condence and strip underscore characters
+    while (wrk_val.count('__')):
+        wrk_val = wrk_val.replace('__', '_')
+    wrk_val = wrk_val.strip('_')
+
+    return wrk_val

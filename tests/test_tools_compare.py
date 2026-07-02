@@ -1,15 +1,21 @@
-import numpy as np
 import pytest
 
-from shapely.geometry import Polygon
-from pyproj import Geod
+import numpy as np
 
 from rastertoolkit.shape import ShapeView, area_sphere, centroid_area
+from pyproj import Geod
+from shapely.geometry import Polygon
+
+
+# Sphere area function vs. pyproj
+sphere_area_diff_perc = 0.005
 
 
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
-    """Ensure the correct working directory is set."""
+    """
+    Ensure the correct working directory is set.
+    """
     monkeypatch.chdir(request.fspath.dirname)
 
 
@@ -18,12 +24,10 @@ def setup_function() -> None:
     pytest.expected_name = "AFRO:DRCONGO:HAUT_KATANGA:KAMPEMBA"
 
 
-# Sphere area function vs. pyproj
-sphere_area_diff_perc = 0.005
-
-
 def test_area_sphere_vs_pyproj_simple():
-    """Compare sphere area diff for simple cases"""
+    """
+    Compare sphere area diff for simple cases
+    """
     all_diff_perc = []
     all_cases = [
         [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]],
@@ -39,7 +43,9 @@ def test_area_sphere_vs_pyproj_simple():
 
 
 def test_area_sphere_vs_pyproj_many():
-    """Compare sphere area diff for shapes in the test shape file."""
+    """
+    Compare sphere area diff for shapes in the test shape file.
+    """
     shapes = ShapeView.from_file(pytest.shape_file)
     all_diff_perc = []
     for shp in shapes:
@@ -70,11 +76,10 @@ def calc_sphere_area_diff(points: np.ndarray):
     return diff_km2, diff_perc
 
 
-# Centroid function vs. Shapely
-
-
 def test_centroid_area_all_shapes():
-    """Testing the function for calculating shape centroid."""
+    """
+    Testing the function for calculating shape centroid.
+    """
     shapes = ShapeView.from_file(pytest.shape_file)
 
     for shp in shapes:
@@ -100,7 +105,9 @@ def test_centroid_area_edge_case():
 
 
 def validate_centroid(points, places=4):
-    """Compare centroid coordinates and area with shapley."""
+    """
+    Compare centroid coordinates and area with shapley.
+    """
     # actual centroid
     x1, y1, a1 = centroid_area(points)
 
