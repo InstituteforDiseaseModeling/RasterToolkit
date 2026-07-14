@@ -1,16 +1,10 @@
-"""
-Functions for spatial processing of shape files.
-"""
-
-from __future__ import annotations
-
 import itertools
-import warnings
 import matplotlib.path as plth
 import matplotlib.pyplot as plt
 import numpy as np
 import shapely.geometry
 import tempfile
+import warnings
 
 from pathlib import Path
 from pyproj import Geod
@@ -661,6 +655,8 @@ def plot_subdivision(
     Returns:
         None
     """
+    warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
+
     png_file = Path(subdivision_stam).with_suffix(".png")
     fig, ax = plot_shapes(
         shape_file, alpha=0.5, color=None, linewidth=1.0, edgecolor=shape_color

@@ -1,11 +1,6 @@
-"""
-Helper functions used by other package modules.
-
-"""
-
-import unicodedata
 import hashlib
 import json
+import unicodedata
 import warnings
 import zipfile
 

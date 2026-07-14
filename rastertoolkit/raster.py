@@ -1,7 +1,3 @@
-"""
-Functions for spatial processing of raster TIFF files.
-"""
-
 import numpy as np
 import os
 
