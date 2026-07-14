@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import matplotlib.path as plth
 import matplotlib.pyplot as plt
