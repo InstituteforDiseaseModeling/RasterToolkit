@@ -144,7 +144,7 @@ def _rep_rule(
     # Strip characters
     wrk_val = wrk_val.replace('\'', '')
     wrk_val = wrk_val.replace('"', '')
-    wrk_val = wrk_val.replace('’', '')
+    wrk_val = wrk_val.replace('`', '')
     wrk_val = wrk_val.replace('.', '')
     wrk_val = wrk_val.replace('\x00', '')
 
