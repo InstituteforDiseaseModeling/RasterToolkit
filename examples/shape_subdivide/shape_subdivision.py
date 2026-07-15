@@ -32,18 +32,17 @@ def subdivide_example(area: int = None):
 
     plot_shapes(shape_file,
                 ax=axs,
-                alpha=0.5,
-                color=None,
-                linewidth=1.0,
+                alpha=0.6,
+                linewidth=0.5,
                 edgecolor="gray")
 
     plot_shapes(new_shape_stem,
                 ax=axs,
                 alpha=0.3,
-                color=None,
                 linewidth=0.2,
                 edgecolor="red")
 
+    plt.tight_layout()
     fig.savefig(new_shape_stem + ".png", dpi=600)
 
 

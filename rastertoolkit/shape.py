@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import itertools
-import matplotlib.path as plth
-import matplotlib.pyplot as plt
+import matplotlib.patches as matpatch
+import matplotlib.path as matpath
+import matplotlib.pyplot as matplot
 import numpy as np
 import shapely.geometry
 import tempfile
@@ -37,7 +38,7 @@ class ShapeView:
         self._points: np.ndarray = None
         self.record: ShapeRecord = record
         self.center: tuple[float, float] = (0.0, 0.0)
-        self.paths: list[plth.Path] = []
+        self.paths: list[matpath.Path] = []
         self.areas: list[float] = []
 
     def __str__(self):
@@ -170,7 +171,7 @@ class ShapeView:
             # Iterate over parts of shapefile
             for k2 in range(len(prt_list) - 1):
                 shp_prt = shp.points[prt_list[k2]:prt_list[k2 + 1]]
-                path_shp = plth.Path(shp_prt, closed=True, readonly=True)
+                path_shp = matpath.Path(shp_prt, closed=True, readonly=True)
 
                 # Estimate area for part
                 area_prt = area_sphere(shp_prt)
@@ -292,7 +293,6 @@ def polygon_to_coords(
 
     Returns:
         list[tuple[float, float]]: A list of coordinates.
-
     """
     if isinstance(geom, Polygon):
         xy_set = geom.exterior.coords
@@ -588,52 +588,72 @@ def shape_subdivide(
 
 def plot_shapes(
     shape_stem: Union[str, Path],
-    ax: plt.Axes = None,
-    alpha: float = 1.0,
-    color: Union[str, None] = None,
-    linewidth: float = 1,
+    ax: matplot.Axes = None,
     **kwargs,
-) -> tuple[plt.Figure, plt.Axes]:
+) -> tuple[matplot.Figure, matplot.Axes]:
     """
     Plots shapes from a shapefile.
 
     Args:
 
         shape_stem (Union[str, Path]): The path or identifier for the shapefile.
-        ax (plt.Axes, optional): The axis to plot the shapes on. Defaults to None.
-        alpha (float, optional): The transparency of the shapes. Defaults to 1.0.
-        color (Union[str, None], optional): The color of the shapes. Defaults to None.
-        linewidth (float, optional): The width of the line. Defaults to 1.
+        ax (matplot.Axes, optional): The axis to plot the shapes on. Defaults to None.
         **kwargs: Additional keyword arguments for the plot.
 
     Returns:
-        tuple[plt.Figure, plt.Axes]: The figure and axis objects.
+        tuple[matplot.Figure, matplot.Axes]: The figure and axis objects.
     """
     # Plot sub-shapes
     if ax is None:
-        fig, ax = plt.subplots()
+        fig, ax = matplot.subplots()
     else:
         fig = None
 
-    if color is not None:
-        kwargs["facecolor"] = color
-    kwargs["alpha"] = alpha
-    kwargs["linewidth"] = linewidth
-
     multi_list: list[MultiPolygon] = shapes_to_polygons(shape_stem)
-    x_min, x_max, y_min, y_max = 360.0, -360.0, 90.0, -90.0
-    for multi in multi_list:
-        for poly in multi.geoms:
-            x, y = poly.exterior.xy
-            x_min, x_max = min(x_min, min(x)), max(x_max, max(x))
-            y_min, y_max = min(y_min, min(y)), max(y_max, max(y))
-            ax.fill(x, y, **kwargs)
 
-    # Set the axis limits and show the plot
-    ax.set_xlim(x_min, x_max)
-    ax.set_ylim(y_min, y_max)
+    _plot_multipolygons(multi_list, ax, **kwargs)
 
     return fig, ax
+
+
+def _plot_multipolygons(
+    multi_list: list[MultiPolygon],
+    axs: matplot.Axes,
+    **kwargs,
+) -> None:
+    """
+    Plots a list of shapely MultiPolygons on a matplotlib axis using matplotlib patch objects;
+    function is separate from plot_shapes to allow use with pre-existing list of shapes.
+
+    Args:
+        multi_list (list[MultiPolygon]): List of MultiPolygon object to plot.
+        axs (matplot.Axes): The axis to use for plotting.
+        **kwargs: Additional keyword arguments for the plot.
+
+    Returns:
+        matplot.Axes: Axis objects with patches added.
+    """
+
+    x_min, x_max, y_min, y_max = 360.0, -360.0, 90.0, -90.0
+
+    for multi in multi_list:
+        # Each polygon has one exterior and zero or more interiors
+        for poly_obj in multi.geoms:
+            x, y = poly_obj.exterior.xy
+            x_min, x_max = min(x_min, min(x)), max(x_max, max(x))
+            y_min, y_max = min(y_min, min(y)), max(y_max, max(y))
+
+            path_obj = _shapely_poly_to_matplotlib_path(poly_obj)
+            patch_obj = matpatch.PathPatch(path_obj, **kwargs)
+            axs.add_patch(patch_obj)
+
+    # Set the axis limits
+    xy_pad = 0.5
+    axs.set_xlim(x_min - xy_pad, x_max + xy_pad)
+    axs.set_ylim(y_min - xy_pad, y_max + xy_pad)
+    axs.set_aspect('equal')
+
+    return axs
 
 
 # Plot generated shapes into a file
@@ -655,7 +675,6 @@ def plot_subdivision(
         png_dpi (int, optional): The DPI of the PNG file. Defaults to 1800.
 
     Returns:
-        None
     """
     warnings.warn("Function will be removed in future update.", category=DeprecationWarning)
 
@@ -674,3 +693,39 @@ def plot_subdivision(
     fig.savefig(png_file, dpi=png_dpi)
 
     return None
+
+
+def _shapely_poly_to_matplotlib_path(
+    poly_in: Polygon,
+) -> matpath.Path:
+    """
+    Constructs a matplotlib path from a shapely polygon.
+
+    Args:
+        poly_in (Polygon): Shapely polygon object
+
+    Returns:
+        poly_path (matpath.Path): Matplotlib Path object
+    """
+
+    patch_vrtx = np.zeros((len(poly_in.exterior.xy[0]), 2))
+    patch_code = np.zeros((len(poly_in.exterior.xy[0])))
+    patch_vrtx[:, 0] = poly_in.exterior.xy[0]
+    patch_vrtx[:, 1] = poly_in.exterior.xy[1]
+    patch_code[:] = matpath.Path.LINETO
+    patch_code[0] = matpath.Path.MOVETO
+
+    for poly_hole in poly_in.interiors:
+        hole_vrtx = np.zeros((len(poly_hole.xy[0]), 2))
+        hole_code = np.zeros((len(poly_hole.xy[0])))
+        hole_vrtx[:, 0] = poly_hole.xy[0]
+        hole_vrtx[:, 1] = poly_hole.xy[1]
+        hole_code[:] = matpath.Path.LINETO
+        hole_code[0] = matpath.Path.MOVETO
+
+        patch_vrtx = np.vstack((patch_vrtx, hole_vrtx))
+        patch_code = np.hstack((patch_code, hole_code))
+
+    poly_path = matpath.Path(patch_vrtx, codes=patch_code)
+
+    return poly_path
