@@ -9,7 +9,7 @@ description = "Raster and shape tools"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    {name = "Kurt Frey", email = "kurt.frey@gatesfoundation.org"},
+    {name = "Kurt Frey", email = "kurtfrey@gmail.com"},
     {name = "Dejan Lukacevic", email = "dejan.lukacevic@gatesfoundation.org"},
     {name = "Katherine Rosenfeld", email = "katherine.rosenfeld@gatesfoundation.org"},
 ]
